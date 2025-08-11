@@ -1,19 +1,27 @@
 export interface Product {
-  id: number;
+  id?: number;
   name: string;
-  category_id: number;
+  code: string;
+  category_id: number | null;
   category_name?: string;
-  lab_id: number;
+  lab_id: number | null;
   lab_name?: string;
-  type_id: number;
+  type_id: number | null;
   type_name?: string;
-  presentation_id: number;
+  presentation_id: number | null;
   presentation_name?: string;
   stock: number;
   price: number;
-  image?: string;
-  code: string;
+  min_stock: number;
+  image?: string | File;
   pharmaceutical_form: string;
-  created_at?: string;
-  updated_at?: string;
+  description: string;
+  batch: string;
+  expiration_date: string;
+  manufacturing_date: string;
+  concentration: string;
+  storage_condition_id: number | null;
+  status: string;
+  requires_prescription: boolean;
+  is_controlled: boolean;
 }

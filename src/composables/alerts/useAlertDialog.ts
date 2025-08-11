@@ -7,7 +7,6 @@ interface TypeAlert {
 }
 
 // Íconos asociados a cada tipo de alerta
-// C:\dev_projects\quasar_projects\pharmacy-front\src\assets\images\alerts\question.png
 const alertIcons: Record<AlertType, string> = {
   success: '/src/assets/images/alerts/success.png',
   error: '/src/assets/images/alerts/error.png',

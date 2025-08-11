@@ -4,6 +4,7 @@ type KeyResource =
   | 'createProduct'
   | 'updateProduct'
   | 'deleteProduct'
+  | 'deleteProducts'
   | 'showProduct'
   | 'allProduct';
 
@@ -18,7 +19,11 @@ const resources: Record<KeyResource, IHttpResourceOption> = {
   },
   deleteProduct: <IHttpResourceOption>{
     path: '/product',
-    method: HttpMethods.Patch,
+    method: HttpMethods.Delete,
+  },
+  deleteProducts: <IHttpResourceOption>{
+    path: '/product',
+    method: HttpMethods.Put,
   },
   showProduct: <IHttpResourceOption>{
     path: '/product',

@@ -207,7 +207,7 @@
                         <!-- Vista previa de la imagen -->
                         <div v-if="form.image || imagePreview" class="q-mb-md">
                           <q-img
-                            :src="imagePreview || form.image"
+                            :src="imagePreview || String(form.image)"
                             style="height: 200px; width: 200px"
                             class="rounded-borders"
                             fit="cover"
@@ -504,14 +504,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, nextTick, onMounted, onBeforeMount } from 'vue';
+import { ref, watch, computed, nextTick, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { resources } from '../api-resource/ApiResource';
 import { Product } from '../interface/ProductInterfaces';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { IComboItem } from '@interfaces/IComboItem'; // Importa la interfaz
 import { useComboStore } from '@stores/combos/comboStore';
-import { useAlert } from '@composables/alerts/useAlertDialog';
 
 /****************************************************************************/
 /*                              PROPS                                       */
@@ -536,7 +535,6 @@ const emit = defineEmits<{
 /****************************************************************************/
 /*                              COMPOSABLE                                  */
 /****************************************************************************/
-const { singleAlert } = useAlert();
 // Instancia el store de Pinia
 const comboStore = useComboStore();
 const { fetchHttpResource } = useFetchHttp();
@@ -549,13 +547,13 @@ const imageInput = ref<HTMLInputElement>();
 const formRef = ref();
 
 // Estados reactivos
-const saving = ref(false);
-const loadingCategories = ref(false);
-const loadingLabs = ref(false);
-const imagePreview = ref('');
+const saving = ref<boolean>(false);
+const loadingCategories = ref<boolean>(false);
+const loadingLabs = ref<boolean>(false);
+const imagePreview = ref<string>('');
 
 // Formulario con todos los campos requeridos
-const form = ref<any>({
+const form = ref<Product>({
   name: '',
   code: '',
   category_id: null,
@@ -746,6 +744,7 @@ const simulateImageUpload = async (file: File) => {
       message: 'Imagen subida correctamente',
     });
   } catch (error) {
+    console.log('error: ', error);
     $q.notify({
       type: 'negative',
       message: 'Error al subir la imagen',
@@ -801,6 +800,7 @@ const createCategory = async (name: string) => {
       message: 'Categoría creada correctamente',
     });
   } catch (error) {
+    console.log('error: ', error);
     $q.notify({
       type: 'negative',
       message: 'Error al crear la categoría',
@@ -836,30 +836,26 @@ const saveProduct = async () => {
       formData.append('_method', 'PUT');
     }
 
-    for (const key in form.value) {
+    for (const key of Object.keys(form.value) as (keyof Product)[]) {
       const value = form.value[key];
 
-      // Excluir la imagen si es una URL existente (string)
       if (key === 'image') {
-        // Si el valor es una instancia de File, significa que el usuario seleccionó una nueva imagen.
         if (value instanceof File) {
           formData.append(key, value, value.name);
         }
-        // Si el valor es un string (URL existente) o nulo/indefinido, NO lo añadimos al FormData.
-        // Esto le dice al backend que el campo 'image' no ha sido modificado.
-        continue; // Pasa a la siguiente iteración del bucle
+        continue;
       }
 
-      // Manejar booleanos
       if (key === 'requires_prescription' || key === 'is_controlled') {
         formData.append(key, value ? '1' : '0');
+      } else if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        formData.append(key, String(value));
       } else if (value !== null && value !== undefined) {
-        // Para todos los demás campos (no imagen, no booleanos específicos)
-        // Asegúrate de que los arrays o objetos complejos (si los hubiera) se serialicen correctamente
-        // Los objetos y arrays complejos se enviarán como '[object Object]' si no se stringifican.
-        // Si tienes arrays o objetos anidados, necesitarás JSON.stringify(value) o aplanarlos.
-        // Para valores simples, esto está bien:
-        formData.append(key, value);
+        formData.append(key, JSON.stringify(value));
       }
     }
 
@@ -892,6 +888,7 @@ const saveProduct = async () => {
 
     emit('saved');
   } catch (error: any) {
+    console.log('error: ', error);
     $q.notify({
       type: 'negative',
       message: props.isEdit ? 'Error al actualizar el producto' : 'Error al crear el producto',

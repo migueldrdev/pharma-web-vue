@@ -124,6 +124,20 @@
       v-model:selected="selectedProducts"
       :filter="filters.search"
     >
+      <!-- Slot para el estado activo -->
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          <q-chip
+            :color="props.value ? 'positive' : 'negative'"
+            text-color="white"
+            size="sm"
+            :icon="props.value ? 'check_circle' : 'close'"
+          >
+            {{ props.value ? 'Activo' : 'Desactivado' }}
+          </q-chip>
+        </q-td>
+      </template>
+
       <!-- Slot para el estado del stock -->
       <template v-slot:body-cell-stock="props">
         <q-td :props="props">
@@ -276,7 +290,7 @@ const comboStore = useComboStore();
 const { loadComboData } = useCombo();
 const { fetchHttpResource } = useFetchHttp();
 const $q = useQuasar();
-const { singleAlert, confirmAlert } = useAlert();
+const { confirmAlert } = useAlert();
 const { notify } = useNotify();
 
 // Estados reactivos
@@ -313,7 +327,6 @@ const labOptions = ref<IComboItem[]>([]);
 const typeOptions = ref<IComboItem[]>([]);
 const presentationOptions = ref<IComboItem[]>([]);
 const storageOptions = ref<IComboItem[]>([]);
-const statusOptions = ref<IComboItem[]>([]);
 
 const stockStatusOptions = ref<IComboItem[]>([
   { label: 'En Stock', value: 'in_stock' },
@@ -336,6 +349,14 @@ const columns: QTableColumn[] = [
     field: 'name',
     required: true,
     align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'status',
+    label: 'Estado',
+    field: 'status',
+    required: true,
+    align: 'center',
     sortable: true,
   },
   {
@@ -416,9 +437,6 @@ const loadProducts = async () => {
       resources.allProduct,
       true,
     );
-
-    console.log('response');
-    console.log(response);
 
     if (!response.success) {
       throw new Error(response.message || 'Error desconocido al cargar datos.');
@@ -505,7 +523,7 @@ const confirmDelete = async (product: Product) => {
   );
 
   if (confirm) {
-    void deleteProduct(product.id);
+    void deleteProducts(product.id);
   }
 };
 
@@ -517,50 +535,46 @@ const confirmMultipleDelete = async () => {
   );
 
   if (confirm) {
-    void deleteMultipleProducts();
+    void deleteProducts();
   }
 };
 
-const deleteProduct = async (id: number) => {
+const deleteProducts = async (id: number = 0) => {
+  const isMultiple = id === 0;
   try {
-    await simulateApiCall(`/api/products/${id}`, { method: 'DELETE' });
+    let resource = resources.deleteProducts;
+
+    if (isMultiple) {
+      const ids = selectedProducts.value.map((p) => p.id);
+      resource.data = { ids };
+    } else {
+      resource = resources.deleteProduct;
+      resource.paramsRoute = [id];
+    }
+
+    const response = await fetchHttpResource(resource, true);
+
+    if (!response.success) {
+      throw new Error(response.message || 'Error desconocido al cargar datos.');
+    }
 
     notify({
-      type: 'positive',
-      message: 'Producto eliminado correctamente',
+      type: response.success ? 'positive' : 'negative',
+      message: response.success
+        ? isMultiple
+          ? `${selectedProducts.value.length} productos eliminados`
+          : 'Producto eliminado correctamente'
+        : response.message,
     });
-
-    await loadProducts();
-  } catch (error) {
-    console.log(error);
-    notify({
-      type: 'negative',
-      message: 'Error al eliminar productos',
-    });
-  }
-};
-
-const deleteMultipleProducts = async () => {
-  try {
-    const ids = selectedProducts.value.map((p) => p.id);
-    await simulateApiCall('/api/products/bulk-delete', {
-      method: 'DELETE',
-      data: { ids },
-    });
-
-    notify({
-      type: 'positive',
-      message: `${selectedProducts.value.length} productos eliminados`,
-    });
-
-    selectedProducts.value = [];
-    await loadProducts();
   } catch (error: any) {
-    console.log(error);
+    console.log('error: ', error);
+
     notify({
       type: 'negative',
       message: 'Error al eliminar productos',
     });
+  } finally {
+    await loadProducts();
   }
 };
 
@@ -594,59 +608,6 @@ const getStockIcon = (stock: number): string => {
   if (stock <= 0) return 'error';
   if (stock <= 10) return 'warning';
   return 'check_circle';
-};
-
-// Función para simular llamadas a API
-const simulateApiCall = async (url: string, options: any = {}) => {
-  // Simular delay de red
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  // Datos simulados
-  const mockData = [
-    {
-      id: 1,
-      name: 'Paracetamol 500mg',
-      category_id: 1,
-      category_name: 'Analgésicos',
-      lab_id: 2,
-      lab_name: 'Laboratorio B',
-      type_id: 1,
-      type_name: 'Genérico',
-      presentation_id: 1,
-      presentation_name: 'Tableta',
-      stock: 100,
-      price: 4.5,
-      code: '123456',
-      pharmaceutical_form: 'forma farmacéutica',
-      image:
-        'https://farmaciauniversalpe.vtexassets.com/arquivos/ids/156423/00908_1.jpg?v=638417260707800000',
-    },
-    {
-      id: 2,
-      name: 'Ibuprofeno 400mg',
-      category_id: 1,
-      category_name: 'Analgésicos',
-      lab_id: 1,
-      lab_name: 'Laboratorio A',
-      type_id: 1,
-      type_name: 'Genérico',
-      presentation_id: 1,
-      presentation_name: 'Tableta',
-      stock: 5,
-      price: 6.75,
-      code: '789012',
-      pharmaceutical_form: 'forma farmacéutica',
-      image:
-        'https://farmaciauniversalpe.vtexassets.com/arquivos/ids/159167/00890_1.jpg?v=638590981889170000',
-    },
-  ];
-
-  return {
-    data: mockData,
-    total: mockData.length,
-    current_page: 1,
-    per_page: 25,
-  };
 };
 
 // Lifecycle
