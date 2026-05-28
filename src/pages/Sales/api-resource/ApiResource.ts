@@ -1,27 +1,27 @@
 import { HttpMethods, IHttpResourceOption } from '@composables/useFetchHttp';
 
 const resources = {
-  createProduct: () => ({
-    path: '/product',
+  createSale: () => ({
+    path: '/sale',
     method: HttpMethods.Post,
   }),
-  updateProduct: (id: number) => ({
-    path: '/product',
+  updateSale: (id: number) => ({
+    path: '/sale',
     method: HttpMethods.Put,
     slug: `${id}`,
   }),
-  deleteProduct: (id: number) => ({
-    path: '/product',
+  deleteSale: (id: number) => ({
+    path: '/sale',
     method: HttpMethods.Delete,
     slug: `${id}`,
   }),
-  showProduct: (id: number) => ({
-    path: '/product',
+  showSale: (id: number) => ({
+    path: '/sale',
     method: HttpMethods.Get,
     slug: `${id}`,
   }),
-  allProduct: () => ({
-    path: '/product',
+  allSales: () => ({
+    path: '/sale',
     method: HttpMethods.Get,
   }),
 } as const;

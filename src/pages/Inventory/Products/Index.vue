@@ -451,7 +451,7 @@ const loadProducts = async () => {
     loading.value = true;
 
     const response: IHttpResponse<ProductData> = await fetchHttpResource<ProductData>(
-      resources.allProduct,
+      resources.allProduct(),
       true,
     );
 

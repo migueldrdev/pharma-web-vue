@@ -508,7 +508,7 @@ import { ref, watch, computed, nextTick, onMounted, onBeforeMount } from 'vue';
 import { useQuasar } from 'quasar';
 import { resources } from '../api-resource/ApiResource';
 import { Product } from '../interface/ProductInterfaces';
-import { useFetchHttp } from '@composables/useFetchHttp';
+import { useFetchHttp, IHttpResourceOption } from '@composables/useFetchHttp';
 import { IComboItem } from '@interfaces/IComboItem'; // Importa la interfaz
 import { useComboStore } from '@stores/combos/comboStore';
 
@@ -811,14 +811,12 @@ const saveProduct = async () => {
   saving.value = true;
 
   try {
-    let resource = resources.createProduct;
+    let resource: IHttpResourceOption = resources.createProduct();
 
-    // --- CAMBIOS CLAVE AQUÍ: Crear FormData ---
     const formData = new FormData();
 
     if (props.isEdit) {
-      resource = resources.updateProduct;
-      resource.paramsRoute = [props.product.id];
+      resource = { ...resources.updateProduct(props.product.id) };
       formData.append('_method', 'PUT');
     }
 
