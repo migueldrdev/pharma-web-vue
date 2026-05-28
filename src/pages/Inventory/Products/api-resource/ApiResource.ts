@@ -7,27 +7,30 @@ type KeyResource =
   | 'showProduct'
   | 'allProduct';
 
-const resources: Record<KeyResource, IHttpResourceOption> = {
-  createProduct: <IHttpResourceOption>{
+const resources: Record<KeyResource, (id?: number) => IHttpResourceOption> = {
+  createProduct: () => ({
     path: '/product',
     method: HttpMethods.Post,
-  },
-  updateProduct: <IHttpResourceOption>{
+  }),
+  updateProduct: (id: number) => ({
     path: '/product',
-    method: HttpMethods.Post,
-  },
-  deleteProduct: <IHttpResourceOption>{
+    method: HttpMethods.Put,
+    slug: `${id}`,
+  }),
+  deleteProduct: (id: number) => ({
     path: '/product',
-    method: HttpMethods.Patch,
-  },
-  showProduct: <IHttpResourceOption>{
-    path: '/product',
-    method: HttpMethods.Get,
-  },
-  allProduct: <IHttpResourceOption>{
+    method: HttpMethods.Delete,
+    slug: `${id}`,
+  }),
+  showProduct: (id: number) => ({
     path: '/product',
     method: HttpMethods.Get,
-  },
+    slug: `${id}`,
+  }),
+  allProduct: () => ({
+    path: '/product',
+    method: HttpMethods.Get,
+  }),
 };
 
 export { resources };

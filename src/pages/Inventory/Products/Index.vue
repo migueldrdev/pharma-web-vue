@@ -1,23 +1,13 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Header con título y acciones -->
-    <div class="row items-center justify-between q-mb-lg">
-      <div>
-        <h4 class="text-h4 text-weight-medium q-ma-none text-grey-8">
-          <q-icon name="inventory_2" class="q-mr-sm text-primary" />
-          Productos
-        </h4>
-        <p class="text-grey-6 q-mb-none">Gestión de inventario farmacéutico</p>
-      </div>
-
-      <div class="row q-gutter-sm">
+    <AppPageHeader title="Productos" subtitle="Gestión de inventario farmacéutico">
+      <template #actions>
         <q-btn
           v-if="hasPermission('products.create')"
           color="primary"
           icon="add"
           label="Nuevo Producto"
           @click="openCreateDialog"
-          class="q-px-lg"
           unelevated
         />
         <q-btn
@@ -28,11 +18,11 @@
           @click="confirmMultipleDelete"
           outline
         />
-        <q-btn icon="refresh" @click="loadProducts" flat round class="text-grey-6">
+        <q-btn icon="refresh" @click="loadProducts" flat round color="grey">
           <q-tooltip>Actualizar</q-tooltip>
         </q-btn>
-      </div>
-    </div>
+      </template>
+    </AppPageHeader>
 
     <!-- Filtros y búsqueda -->
     <q-card flat class="q-mb-md">
@@ -247,6 +237,18 @@
       @saved="onProductSaved"
     />
 
+    <!-- Confirmación de eliminación -->
+    <AppConfirmDialog
+      v-model="showDeleteConfirm"
+      :title="deleteTarget === 'multiple' ? 'Eliminar productos' : 'Eliminar producto'"
+      :message="deleteTarget === 'multiple'
+        ? `¿Eliminar ${selectedProducts.length} productos seleccionados?`
+        : `¿Eliminar el producto \"${(deleteTarget as Product)?.name}\"?`"
+      confirm-label="Eliminar"
+      color="negative"
+      @confirm="handleDeleteConfirm"
+    />
+
     <!-- Dialog para ver imagen -->
     <q-dialog v-model="showImagePreview">
       <q-card>
@@ -269,6 +271,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import ProductDialog from './components/Form.vue';
+import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import { resources } from './api-resource/ApiResource';
 import { Product } from './interface/ProductInterfaces';
 import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
@@ -313,6 +317,8 @@ const showDialog = ref(false);
 const isEdit = ref(false);
 const showImagePreview = ref(false);
 const previewImage = ref('');
+const showDeleteConfirm = ref(false);
+const deleteTarget = ref<Product | 'multiple' | null>(null);
 
 // Filtros
 const filters = ref({
@@ -522,70 +528,44 @@ const viewProduct = (product: Product) => {
 };
 
 const confirmDelete = (product: Product) => {
-  $q.dialog({
-    title: 'Confirmar eliminación',
-    message: `¿Estás seguro de eliminar el producto "${product.name}"?`,
-    cancel: true,
-    persistent: true,
-    color: 'negative',
-  }).onOk(() => {
-    void deleteProduct(product.id);
-  });
+  deleteTarget.value = product;
+  showDeleteConfirm.value = true;
 };
 
 const confirmMultipleDelete = () => {
-  // Ya no es una función async
-  $q.dialog({
-    title: 'Confirmar eliminación múltiple',
-    message: `¿Estás seguro de eliminar ${selectedProducts.value.length} productos?`,
-    cancel: true,
-    persistent: true,
-    color: 'negative',
-  }).onOk(() => {
-    // Esta sí sigue siendo async porque usa await
-    void deleteMultipleProducts();
-  });
+  deleteTarget.value = 'multiple';
+  showDeleteConfirm.value = true;
+};
+
+const handleDeleteConfirm = async () => {
+  if (deleteTarget.value === 'multiple') {
+    await deleteMultipleProducts();
+  } else if (deleteTarget.value && typeof deleteTarget.value === 'object') {
+    await deleteProduct(deleteTarget.value.id);
+  }
+  showDeleteConfirm.value = false;
 };
 
 const deleteProduct = async (id: number) => {
   try {
-    await simulateApiCall(`/api/products/${id}`, { method: 'DELETE' });
-
-    $q.notify({
-      type: 'positive',
-      message: 'Producto eliminado correctamente',
-    });
-
+    await fetchHttpResource(resources.deleteProduct(id));
+    $q.notify({ type: 'positive', message: 'Producto eliminado correctamente' });
     await loadProducts();
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al eliminar producto',
-    });
+    $q.notify({ type: 'negative', message: 'Error al eliminar producto' });
   }
 };
 
 const deleteMultipleProducts = async () => {
   try {
-    const ids = selectedProducts.value.map((p) => p.id);
-    await simulateApiCall('/api/products/bulk-delete', {
-      method: 'DELETE',
-      data: { ids },
-    });
-
-    $q.notify({
-      type: 'positive',
-      message: `${selectedProducts.value.length} productos eliminados`,
-    });
-
+    for (const product of selectedProducts.value) {
+      await fetchHttpResource(resources.deleteProduct(product.id));
+    }
     selectedProducts.value = [];
+    $q.notify({ type: 'positive', message: 'Productos eliminados correctamente' });
     await loadProducts();
-  } catch (error: any) {
-    console.log(error);
-    $q.notify({
-      type: 'negative',
-      message: 'Error al eliminar productos',
-    });
+  } catch (error) {
+    $q.notify({ type: 'negative', message: 'Error al eliminar productos' });
   }
 };
 
