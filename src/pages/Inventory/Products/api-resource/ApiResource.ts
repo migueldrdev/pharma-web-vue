@@ -12,7 +12,7 @@ const resources: Record<KeyResource, (id?: number) => IHttpResourceOption> = {
     path: '/product',
     method: HttpMethods.Post,
   }),
-  updateProduct: (id: number) => ({
+  updateProduct: (_id: number) => ({
     path: '/product',
     method: HttpMethods.Put,
     slug: `${id}`,

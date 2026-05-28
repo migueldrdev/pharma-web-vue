@@ -1,6 +1,7 @@
 <script setup lang="ts">
+const modelValue = defineModel<boolean>({ required: true });
+
 defineProps<{
-  modelValue: boolean;
   title: string;
   message?: string;
   confirmLabel?: string;
@@ -8,7 +9,6 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
   confirm: [];
 }>();
 </script>

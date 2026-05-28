@@ -1,30 +1,22 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
-const props = defineProps<{
-  modelValue: boolean;
+const modelValue = defineModel<boolean>({ required: true });
+
+defineProps<{
   title: string;
   persistent?: boolean;
   width?: string;
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
   submit: [];
 }>();
 
-const innerValue = ref(props.modelValue);
-const formRef = ref();
-
-watch(
-  () => props.modelValue,
-  (val) => {
-    innerValue.value = val;
-  },
-);
+const formRef = ref<HTMLFormElement>();
 
 function onHide() {
-  emit('update:modelValue', false);
+  modelValue.value = false;
 }
 
 function onSubmit() {
@@ -36,7 +28,7 @@ defineExpose({ formRef, close: onHide });
 
 <template>
   <q-dialog
-    v-model="innerValue"
+    v-model="modelValue"
     :persistent="persistent ?? true"
     :maximized="$q.screen.lt.md"
     transition-show="slide-up"
@@ -60,18 +52,8 @@ defineExpose({ formRef, close: onHide });
       <q-separator />
 
       <q-card-actions align="right" class="q-pa-md">
-        <q-btn
-          flat
-          label="Cancelar"
-          color="grey"
-          @click="onHide"
-        />
-        <q-btn
-          unelevated
-          color="primary"
-          label="Guardar"
-          @click="onSubmit"
-        />
+        <q-btn flat label="Cancelar" color="grey" @click="onHide" />
+        <q-btn unelevated color="primary" label="Guardar" @click="onSubmit" />
       </q-card-actions>
     </q-card>
   </q-dialog>

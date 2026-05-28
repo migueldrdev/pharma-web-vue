@@ -241,9 +241,7 @@
     <AppConfirmDialog
       v-model="showDeleteConfirm"
       :title="deleteTarget === 'multiple' ? 'Eliminar productos' : 'Eliminar producto'"
-      :message="deleteTarget === 'multiple'
-        ? `¿Eliminar ${selectedProducts.length} productos seleccionados?`
-        : `¿Eliminar el producto \"${(deleteTarget as Product)?.name}\"?`"
+      :message="deleteMessage"
       confirm-label="Eliminar"
       color="negative"
       @confirm="handleDeleteConfirm"
@@ -429,6 +427,16 @@ const hasPermission = (permission: string): boolean => {
   return userPermissions.value.includes(permission);
 };
 
+const deleteMessage = computed(() => {
+  if (deleteTarget.value === 'multiple') {
+    return `¿Eliminar ${selectedProducts.value.length} productos seleccionados?`;
+  }
+  if (deleteTarget.value && typeof deleteTarget.value === 'object') {
+    return `¿Eliminar el producto "${(deleteTarget.value as Product).name}"?`;
+  }
+  return '¿Eliminar?';
+});
+
 // Función para cargar todos los combos
 const getAllCombos = () => {
   categoryOptions.value = comboStore.getComboData('categoriesCombo');
@@ -599,59 +607,6 @@ const getStockIcon = (stock: number): string => {
   if (stock <= 0) return 'error';
   if (stock <= 10) return 'warning';
   return 'check_circle';
-};
-
-// Función para simular llamadas a API
-const simulateApiCall = async (url: string, options: any = {}) => {
-  // Simular delay de red
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  // Datos simulados
-  const mockData = [
-    {
-      id: 1,
-      name: 'Paracetamol 500mg',
-      category_id: 1,
-      category_name: 'Analgésicos',
-      lab_id: 2,
-      lab_name: 'Laboratorio B',
-      type_id: 1,
-      type_name: 'Genérico',
-      presentation_id: 1,
-      presentation_name: 'Tableta',
-      stock: 100,
-      price: 4.5,
-      code: '123456',
-      pharmaceutical_form: 'forma farmacéutica',
-      image:
-        'https://farmaciauniversalpe.vtexassets.com/arquivos/ids/156423/00908_1.jpg?v=638417260707800000',
-    },
-    {
-      id: 2,
-      name: 'Ibuprofeno 400mg',
-      category_id: 1,
-      category_name: 'Analgésicos',
-      lab_id: 1,
-      lab_name: 'Laboratorio A',
-      type_id: 1,
-      type_name: 'Genérico',
-      presentation_id: 1,
-      presentation_name: 'Tableta',
-      stock: 5,
-      price: 6.75,
-      code: '789012',
-      pharmaceutical_form: 'forma farmacéutica',
-      image:
-        'https://farmaciauniversalpe.vtexassets.com/arquivos/ids/159167/00890_1.jpg?v=638590981889170000',
-    },
-  ];
-
-  return {
-    data: mockData,
-    total: mockData.length,
-    current_page: 1,
-    per_page: 25,
-  };
 };
 
 // Lifecycle

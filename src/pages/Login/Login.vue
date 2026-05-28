@@ -69,7 +69,7 @@ const handleLogin = async () => {
   try {
     await auth.login(email.value, password.value);
     return router.push('/');
-  } catch (e: any) {
+  } catch (_e: any) {
     Notify.create({
       type: 'negative',
       message: 'Credenciales inválidas',
@@ -297,7 +297,7 @@ const handleLogin = async () => {
     console.log('Credenciales en pages login: ', email.value, password.value);
     await auth.login(email.value, password.value);
     return router.push('/');
-  } catch (e: any) {
+  } catch (_e: any) {
     Notify.create({
       type: 'negative',
       message: 'Credenciales inválidas',

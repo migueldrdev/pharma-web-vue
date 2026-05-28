@@ -25,7 +25,12 @@ $negative: #c10015;
 $info: #31ccec;
 $warning: #f2c037;
 
-// Variables semánticas adicionales
+// Variables semánticas adicionales (compatibilidad con código existente)
+$primary-color: $primary;
+$secondary-color: $secondary;
+$accent-color: $accent;
+$white: #ffffff;
+$dark-bg: $dark;
 $text-primary: #2c3e50;
 $text-secondary: #7f8c8d;
 $border-color: #e9ecef;

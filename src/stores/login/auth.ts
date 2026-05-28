@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       await api.post('/logout');
-    } catch (e) {
+    } catch (_e) {
       // Ignorar error si el token ya expiró
     } finally {
       user.value = null;
