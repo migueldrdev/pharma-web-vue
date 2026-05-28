@@ -294,6 +294,7 @@ const isPwd = ref(true);
 
 const handleLogin = async () => {
   try {
+    console.log('Credenciales en pages login: ', email.value, password.value);
     await auth.login(email.value, password.value);
     return router.push('/');
   } catch (e: any) {

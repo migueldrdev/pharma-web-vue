@@ -1,91 +1,36 @@
-// src/stores/Auth/auth.ts
-
-// import { defineStore } from 'pinia';
-// import { api, sanctumApi } from '@/boot/axios'; // Importa ambas instancias
-// import { ref } from 'vue';
-// import { useRouter } from 'vue-router'; // useRouter solo es válido dentro de setup() o setup de un componente/composable.
-// // Para Pinia stores, se inyecta desde el bootfile o se importa globalmente.
-// // Si estás en Quasar, 'useRouter' suele funcionar bien aquí.
-
-// export const useAuthStore = defineStore('auth', () => {
-//   const user = ref(null);
-//   const router = useRouter(); // Asegúrate de que esto funciona en tu setup de Pinia.
-//   // Si no, puedes pasarlo como argumento al store desde el bootfile.
-
-//   async function login(email: string, password: string) {
-//     // 1. Obtener CSRF cookie usando la instancia 'sanctumApi' (sin /api/v1)
-//     await sanctumApi.get('/sanctum/csrf-cookie');
-
-//     // 2. Realizar el login usando la instancia 'api' (con /api/v1)
-//     const { data } = await api.post('/login', { email, password });
-//     user.value = data.user;
-//   }
-
-//   async function fetchUser() {
-//     // Para obtener la información del usuario logueado, usar 'api' (con /api/v1)
-//     try {
-//       const { data } = await api.get('/user');
-//       user.value = data;
-//     } catch {
-//       user.value = null;
-//     }
-//   }
-
-//   async function logout() {
-//     user.value = null;
-//     try {
-//       // Para cerrar sesión, usar la instancia 'sanctumApi' (sin /api/v1)
-//       await sanctumApi.post('/logout');
-//     } catch (error) {
-//       console.error('Error al cerrar sesión:', error);
-//     }
-//   }
-
-//   return {
-//     user,
-//     login,
-//     logout,
-//     fetchUser,
-//   };
-// });
-
-// src/stores/menu.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-
-import { api, sanctumApi } from '@/boot/axios'; // Importa ambas instancias
-// import { useRouter } from 'vue-router'; // useRouter solo es válido dentro de setup() o setup de un componente/composable.
-
+import { api } from '@/boot/axios';
 import { usePermissionsStore } from './permissions';
+import type { IMenuItem } from '@/interfaces/IMenuItem';
 
-export interface MenuItem {
-  id: string;
-  label: string;
-  icon: string;
-  route?: string;
-  permission: string;
-  description?: string;
-  badge?: string | number | undefined;
-  badgeColor?: string;
-  defaultOpen?: boolean;
-  children?: MenuItem[] | undefined;
-  order?: number;
-  module?: string;
-}
-// /*
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
-  // const router = useRouter(); // Asegúrate de que esto funciona en tu setup de Pinia.
-  // Si no, puedes pasarlo como argumento al store desde el bootfile.
+  const token = ref(localStorage.getItem('token'));
 
-  async function login(email: string, password: string) {
-    // 1. Obtener CSRF cookie usando la instancia 'sanctumApi' (sin /api/v1)
-    await sanctumApi.get('/sanctum/csrf-cookie');
+  // Acción: Iniciar Sesión
+  const login = async (email: string, password: string) => {
+    try {
+      // 1. Petición directa (Sin CSRF)
+      console.log('Credenciales: ', email, password);
+      const response = await api.post('/login', { email, password });
+      // 2. Capturar datos (Ajustado a tu ResponseHelper: data.data.token)
+      const { token: newToken, user: userData } = response.data.data;
 
-    // 2. Realizar el login usando la instancia 'api' (con /api/v1)
-    const { data } = await api.post('/login', { email, password });
-    user.value = data.user;
-  }
+      // 3. Guardar estado
+      token.value = newToken;
+      user.value = userData;
+      localStorage.setItem('token', newToken);
+
+      // 4. Inyectar token a Axios para siguientes peticiones
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
 
   async function fetchUser() {
     // Para obtener la información del usuario logueado, usar 'api' (con /api/v1)
@@ -97,111 +42,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout() {
-    user.value = null;
+  // Acción: Cerrar Sesión
+  const logout = async () => {
     try {
-      // Para cerrar sesión, usar la instancia 'sanctumApi' (sin /api/v1)
       await api.post('/logout');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  }
-
-  return {
-    user,
-    login,
-    logout,
-    fetchUser,
-  };
-});
-// */
-/*
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null);
-  const router = useRouter(); // Obtiene la instancia del router aquí
-
-  async function login(email: string, password: string) {
-    try {
-      // 1. Obtener CSRF cookie usando la instancia 'sanctumApi' (sin /api/v1)
-      // Esta petición es crucial para que Laravel establezca la cookie XSRF-TOKEN
-      await sanctumApi.get('/sanctum/csrf-cookie');
-
-      // 2. Realizar el login usando la instancia 'api' (con /api/v1 para tu ruta /api/v1/login)
-      // Laravel, al usar Auth::attempt(), establecerá la cookie de sesión.
-      const { data } = await api.post('/login', { email, password });
-
-      // 3. Después de un login exitoso, obtener los datos del usuario
-      // Esto actualizará el estado 'user.value' en tu store.
-      // Es importante llamar a fetchUser() para que el store tenga la información completa del usuario.
-      await fetchUser(); // Llama a fetchUser para poblar user.value
-
-      // 4. Redirigir al usuario a la página principal o al dashboard
-      // Solo redirige si el usuario existe (lo que indica un login exitoso).
-      if (user.value) {
-        return router.push('/'); // O '/dashboard' si esa es tu ruta principal protegida
-      }
-
-      return data; // Puedes retornar los datos si tu componente de login los necesita
-    } catch (error) {
-      // Si hay un error en el login (ej. credenciales incorrectas),
-      // asegúrate de que el usuario no esté establecido.
+    } catch (e) {
+      // Ignorar error si el token ya expiró
+    } finally {
       user.value = null;
-      // El interceptor de Axios ya manejará los 401s y las redirecciones
-      // para otras rutas. Para el login, puedes lanzar el error para que
-      // el componente de login lo maneje (ej. mostrar un mensaje de error).
-      throw error;
+      token.value = null;
+      localStorage.removeItem('token');
+      // Recargar para limpiar estado completo
+      window.location.reload();
     }
-  }
-
-  async function fetchUser() {
-    try {
-      // Para obtener la información del usuario logueado, usar 'api' (con /api/v1/user)
-      const { data } = await api.get('/user');
-      user.value = data.user; // Asumiendo que tu API devuelve { user: {...} }
-    } catch (error) {
-      // Si fetchUser falla (ej. 401 Unauthorized), significa que no hay sesión válida.
-      // El interceptor de Axios ya redirigirá a /login.
-      user.value = null;
-      // No lances el error aquí para evitar que el router guard intente otra redirección
-      // si el interceptor ya está actuando.
-    }
-  }
-
-  async function logout() {
-    // Limpia el estado local del usuario inmediatamente
-    user.value = null;
-    try {
-      // Para cerrar sesión en el backend, usar la instancia 'api' (con /api/v1/logout)
-      // O 'sanctumApi' si tu ruta de logout no está bajo /api/v1
-      await api.post('/logout');
-      // Después de un logout exitoso en el backend, redirige al login.
-      // Asegúrate de que esta redirección no entre en conflicto con el interceptor de Axios
-      // si este ya está redirigiendo por un 401.
-      if (router.currentRoute.value.path !== '/login') {
-        return router.push('/login');
-      }
-    } catch (error) {
-      console.error('Error al cerrar sesión en el backend:', error);
-      // Si el logout falla en el backend, aún así redirige al login para asegurar el estado del frontend.
-      if (router.currentRoute.value.path !== '/login') {
-        return router.push('/login');
-      }
-    }
-  }
-
-  return {
-    user,
-    login,
-    logout,
-    fetchUser,
   };
+
+  return { user, token, login, logout, fetchUser };
 });
-*/
+
 export const useMenuStore = defineStore('menu', () => {
   const permissionsStore = usePermissionsStore();
 
   // State
-  const menuItems = ref<MenuItem[]>([]);
+  const menuItems = ref<IMenuItem[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -485,7 +348,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   };
 
-  const filterMenuByPermissions = (items: MenuItem[]): MenuItem[] => {
+  const filterMenuByPermissions = (items: IMenuItem[]): IMenuItem[] => {
     return items
       .filter((item) => permissionsStore.hasPermission(item.permission))
       .map((item) => {
@@ -511,8 +374,8 @@ export const useMenuStore = defineStore('menu', () => {
       });
   };
 
-  const getMenuItemById = (id: string): MenuItem | undefined => {
-    const findInItems = (items: MenuItem[]): MenuItem | undefined => {
+  const getMenuItemById = (id: string): IMenuItem | undefined => {
+    const findInItems = (items: IMenuItem[]): IMenuItem | undefined => {
       for (const item of items) {
         if (item.id === id) return item;
         if (item.children) {
@@ -525,8 +388,8 @@ export const useMenuStore = defineStore('menu', () => {
     return findInItems(menuItems.value);
   };
 
-  const getMenuItemByRoute = (route: string): MenuItem | undefined => {
-    const findInItems = (items: MenuItem[]): MenuItem | undefined => {
+  const getMenuItemByRoute = (route: string): IMenuItem | undefined => {
+    const findInItems = (items: IMenuItem[]): IMenuItem | undefined => {
       for (const item of items) {
         if (item.route === route) return item;
         if (item.children) {
@@ -544,7 +407,7 @@ export const useMenuStore = defineStore('menu', () => {
     badge: string | number | undefined,
     badgeColor?: string,
   ) => {
-    const updateInItems = (items: MenuItem[]): boolean => {
+    const updateInItems = (items: IMenuItem[]): boolean => {
       for (const item of items) {
         if (item.id === itemId) {
           item.badge = badge;
@@ -574,7 +437,7 @@ export const useMenuStore = defineStore('menu', () => {
     const menuItem = getMenuItemByRoute(currentRoute);
     if (menuItem) {
       // Buscar el padre si existe
-      const findParent = (items: MenuItem[], target: MenuItem): MenuItem | undefined => {
+      const findParent = (items: IMenuItem[], target: IMenuItem): IMenuItem | undefined => {
         for (const item of items) {
           if (item.children?.some((child) => child.id === target.id)) {
             return item;

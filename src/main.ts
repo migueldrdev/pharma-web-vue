@@ -18,9 +18,8 @@ import '@quasar/extras/roboto-font/roboto-font.css';
 import App from './App.vue';
 
 // Importar stores
-import { useAuthStore } from '@stores/login/auth';
+import { useAuthStore, useMenuStore } from '@stores/login/auth';
 import { usePermissionsStore } from '@stores/login/permissions';
-import { useMenuStore } from '@stores/login/menu';
 
 // Importar directiva de permisos
 import permissionDirective from './directives/permission';
@@ -118,9 +117,6 @@ const initApp = async () => {
     const authStore = useAuthStore();
     const permissionsStore = usePermissionsStore();
     const menuStore = useMenuStore();
-
-    // Verificar estado de autenticación
-    await authStore.fetchUser();
 
     // Si está autenticado, cargar permisos y menús
     if (authStore.user) {

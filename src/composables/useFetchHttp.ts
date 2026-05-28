@@ -6,8 +6,8 @@ import axios, {
   CancelTokenSource,
   AxiosInstance,
 } from 'axios';
-import { SessionStorage, Notify, QSpinnerHourglass } from 'quasar';
-import { api, sanctumApi } from '@/boot/axios'; // Ajusta la ruta si es necesario
+import { Notify, QSpinnerHourglass } from 'quasar';
+import { api } from '@/boot/axios'; // Ajusta la ruta si es necesario
 
 // Se usa para gestionar las notificaciones de descarga,
 // si prefieres una sola cola, esto está bien.
@@ -34,7 +34,6 @@ export interface IHttpResourceOption {
   download?: boolean;
   nameDocument?: string;
   downloadJson?: boolean;
-  useSanctumApi?: boolean; // Para decidir entre 'api' y 'sanctumApi'
   // Puedes añadir un flag para indicar si requiere token Bearer si no es Sanctum
   requiresBearerToken?: boolean;
 }
@@ -73,21 +72,11 @@ export function useFetchHttp() {
   // y no es manejado por cookies (como en Sanctum SPA).
   // Para Sanctum (con withCredentials: true, withXSRFToken: true), esto NO es necesario.
   const getBearerAuthorizationHeader = () => {
-    // SessionStorage.getItem() siempre devuelve `string | null`.
-    // Si devuelve `null`, la condición `token ? ... : {}` lo manejará.
-    const token = SessionStorage.getItem('access_token');
-
-    // Aseguramos que 'token' sea un string válido antes de usarlo
-    // en el template literal.
-    // La condición 'typeof token === "string"' es una "type guard"
-    // que le dice a TypeScript que, dentro de este 'if', 'token' es definitivamente un string.
+    const token = localStorage.getItem('token');
     if (typeof token === 'string' && token) {
       return { Authorization: `Bearer ${token}` };
-    } else {
-      // Si token es null, undefined, o no es una cadena (aunque getItem debería dar string|null)
-      // retornamos un objeto vacío.
-      return {};
     }
+    return {};
   };
 
   const fetchHttpResource = async <TData = any>( // Añadido genérico para la respuesta
@@ -96,7 +85,7 @@ export function useFetchHttp() {
   ): Promise<IHttpResponse<TData>> => {
     const paramsRoute = options.paramsRoute ?? [];
 
-    const axiosInstance = options.useSanctumApi ? sanctumApi : api;
+    const axiosInstance = api;
 
     // Construye la URL relativa a la baseURL de la instancia seleccionada
     let url = `${options.path}${options.slug ?? ''}`;

@@ -324,24 +324,12 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useQuasar, Notify } from 'quasar';
-import { useAuthStore } from '@stores/login/auth';
-import { useMenuStore } from '@stores/login/menu';
+import { useAuthStore, useMenuStore } from '@stores/login/auth';
 import { usePermissionsStore } from '@stores/login/permissions';
 import { useLoading } from '@composables/useLoading';
+import type { IMenuItem } from '@/interfaces/IMenuItem';
 
-// Interfaces
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: string;
-  route?: string;
-  permission: string;
-  description?: string;
-  badge?: string | number;
-  badgeColor?: string;
-  defaultOpen?: boolean;
-  children?: MenuItem[];
-}
+// Menú hardcodeado (en Fase 0.5 se migrará a consumir useMenuStore.filteredMenuItems)
 
 interface Notification {
   id: string;
@@ -422,7 +410,7 @@ const notifications = ref<Notification[]>([
 ]);
 
 // Menu items (simulado desde API)
-const menuItems = ref<MenuItem[]>([
+const menuItems = ref<IMenuItem[]>([
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -657,8 +645,8 @@ const navigateTo = (route: string) => {
   return router.push(route);
 };
 
-const findMenuItemByRoute = (route: string): MenuItem | undefined => {
-  const findInItems = (items: MenuItem[]): MenuItem | undefined => {
+const findMenuItemByRoute = (route: string): IMenuItem | undefined => {
+  const findInItems = (items: IMenuItem[]): IMenuItem | undefined => {
     for (const item of items) {
       if (item.route === route) return item;
       if (item.children) {
@@ -671,7 +659,7 @@ const findMenuItemByRoute = (route: string): MenuItem | undefined => {
   return findInItems(menuItems.value);
 };
 
-const isActiveParent = (item: MenuItem): boolean => {
+const isActiveParent = (item: IMenuItem): boolean => {
   if (!item.children) return false;
   return item.children.some((child) => child.route === route.path);
 };
