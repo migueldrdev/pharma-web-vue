@@ -232,6 +232,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useFetchHttp } from '@composables/useFetchHttp';
 import { Notify } from 'quasar';
 import Highcharts from 'highcharts';
 
@@ -588,24 +589,39 @@ const quickActions = ref<QuickAction[]>([
 ]);
 
 // Methods
+const { fetchHttpResource } = useFetchHttp();
+
 const refreshData = async () => {
   loading.value = true;
   try {
-    // Simular carga de datos
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const [sRes, pRes] = await Promise.all([
+      fetchHttpResource({ path: '/sale', method: 'get' as never }),
+      fetchHttpResource({ path: '/product', method: 'get' as never }),
+    ]);
 
-    Notify.create({
-      type: 'positive',
-      message: 'Datos actualizados correctamente',
-      position: 'top-right',
-    });
-  } catch (error: any) {
-    console.log(error);
-    Notify.create({
-      type: 'negative',
-      message: 'Error al actualizar los datos',
-      position: 'top-right',
-    });
+    const sales = Array.isArray(sRes.data) ? sRes.data : (sRes.data as any)?.data || [];
+    const today = new Date().toISOString().split('T')[0];
+    const todaySales = (sales as Record<string, unknown>[]).filter((s) => String(s.sale_date || '').startsWith(today));
+    const todayRevenue = todaySales.reduce((sum: number, s) => sum + Number(s.total || 0), 0);
+    const monthRevenue = (sales as Record<string, unknown>[]).reduce((sum: number, s) => sum + Number(s.total || 0), 0);
+
+    const products = Array.isArray(pRes.data) ? pRes.data : (pRes.data as any)?.data || [];
+    const totalStock = (products as Record<string, unknown>[]).reduce((sum: number, p) => sum + Number(p.stock || 0), 0);
+    const todayQty = todaySales.reduce((sum: number, s) => sum + ((s.details as Record<string, unknown>[])?.reduce((d: number, x: Record<string, unknown>) => d + Number(x.quantity || 0), 0) || 0), 0);
+    const expiringCount = (products as Record<string, unknown>[]).filter((p) => p.expiration_date).length;
+
+    kpis.value = [
+      { id: '1', label: 'Ventas Hoy', value: `S/ ${todayRevenue.toFixed(2)}`, icon: 'point_of_sale', trend: 0, type: 'sales' },
+      { id: '2', label: 'Productos Vendidos', value: String(todayQty), icon: 'medication', trend: 0, type: 'products' },
+      { id: '3', label: 'Total Ventas', value: String(todaySales.length), icon: 'receipt_long', trend: 0, type: 'sales' },
+      { id: '4', label: 'Productos en Stock', value: String(totalStock), icon: 'inventory', trend: 0, type: 'inventory' },
+      { id: '5', label: 'Ingresos del Mes', value: `S/ ${monthRevenue.toFixed(2)}`, icon: 'account_balance_wallet', trend: 0, type: 'revenue' },
+      { id: '6', label: 'Productos por Vencer', value: String(expiringCount), icon: 'event_busy', trend: 0, type: 'expiring' },
+    ];
+
+    Notify.create({ type: 'positive', message: 'Datos actualizados', position: 'top-right', timeout: 2000 });
+  } catch {
+    Notify.create({ type: 'negative', message: 'Error al cargar métricas', position: 'top-right' });
   } finally {
     loading.value = false;
   }
