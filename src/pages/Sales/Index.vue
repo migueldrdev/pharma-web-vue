@@ -178,7 +178,5 @@ async function viewSale(row: { id: number } & Record<string, unknown>) {
   }
 }
 
-onMounted(() => {
-  void loadSales();
-});
+onMounted(() => { void loadSales(); });
 </script>
