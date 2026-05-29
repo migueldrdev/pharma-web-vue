@@ -133,7 +133,7 @@ async function submit() {
         details: cart.value.map((i) => ({ product_id: i.product_id, quantity: i.quantity, price: i.price, subtotal: i.subtotal, batch_number: i.batch_number, expiration_date: i.expiration_date })),
       },
     } as IHttpResourceOption);
-    if (response.success) { $q.notify({ type: 'positive', message: 'Compra registrada' }); router.push({ name: 'purchases' }); }
+    if (response.success) { $q.notify({ type: 'positive', message: 'Compra registrada' }); void router.push({ name: 'purchases' }); }
     else { $q.notify({ type: 'negative', message: response.message || 'Error' }); }
   } catch { $q.notify({ type: 'negative', message: 'Error al registrar compra' }); }
   finally { submitting.value = false; }

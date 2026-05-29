@@ -234,7 +234,7 @@ async function submitSale() {
 
     if (response.success) {
       $q.notify({ type: 'positive', message: 'Venta registrada exitosamente' });
-      router.push({ name: 'sales' });
+      void router.push({ name: 'sales' });
     } else {
       $q.notify({ type: 'negative', message: response.message || 'Error al registrar venta' });
     }

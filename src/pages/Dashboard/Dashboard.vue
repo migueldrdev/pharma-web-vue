@@ -237,6 +237,8 @@ import { Notify } from 'quasar';
 import Highcharts from 'highcharts';
 
 // Interfaces
+interface SaleRecord { id: number; sale_date: string; total: number; details?: { quantity: number }[]; customer_name?: string; }
+interface ProductRecord { id: number; name: string; stock: number; expiration_date?: string; }
 interface KPI {
   id: string;
   label: string;
@@ -599,16 +601,16 @@ const refreshData = async () => {
       fetchHttpResource({ path: '/product', method: 'get' as never }),
     ]);
 
-    const sales = Array.isArray(sRes.data) ? sRes.data : (sRes.data as any)?.data || [];
+    const sales = Array.isArray(sRes.data) ? sRes.data as SaleRecord[] : ((sRes.data as unknown as { data: SaleRecord[] })?.data) || [];
     const today = new Date().toISOString().split('T')[0];
-    const todaySales = (sales as Record<string, unknown>[]).filter((s) => String(s.sale_date || '').startsWith(today));
-    const todayRevenue = todaySales.reduce((sum: number, s) => sum + Number(s.total || 0), 0);
-    const monthRevenue = (sales as Record<string, unknown>[]).reduce((sum: number, s) => sum + Number(s.total || 0), 0);
+    const todaySales = sales.filter((s) => String(s.sale_date ?? '').startsWith(today));
+    const todayRevenue = todaySales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
+    const monthRevenue = sales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
 
-    const products = Array.isArray(pRes.data) ? pRes.data : (pRes.data as any)?.data || [];
-    const totalStock = (products as Record<string, unknown>[]).reduce((sum: number, p) => sum + Number(p.stock || 0), 0);
-    const todayQty = todaySales.reduce((sum: number, s) => sum + ((s.details as Record<string, unknown>[])?.reduce((d: number, x: Record<string, unknown>) => d + Number(x.quantity || 0), 0) || 0), 0);
-    const expiringCount = (products as Record<string, unknown>[]).filter((p) => p.expiration_date).length;
+    const products = Array.isArray(pRes.data) ? pRes.data as ProductRecord[] : ((pRes.data as unknown as { data: ProductRecord[] })?.data) || [];
+    const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+    const todayQty = todaySales.reduce((sum, s) => sum + ((s.details)?.reduce((d, x) => d + Number(x.quantity || 0), 0) || 0), 0);
+    const expiringCount = products.filter((p) => p.expiration_date).length;
 
     kpis.value = [
       { id: '1', label: 'Ventas Hoy', value: `S/ ${todayRevenue.toFixed(2)}`, icon: 'point_of_sale', trend: 0, type: 'sales' },

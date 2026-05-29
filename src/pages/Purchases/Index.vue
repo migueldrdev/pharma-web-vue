@@ -50,7 +50,10 @@ import { useFetchHttp } from '@composables/useFetchHttp';
 
 const { fetchHttpResource } = useFetchHttp();
 const $q = useQuasar();
-const purchases = ref<Record<string, unknown>[]>([]);
+
+interface Purchase { id: number; purchase_date: string; total: number; supplier_name?: string; }
+
+const purchases = ref<Purchase[]>([]);
 const loading = ref(false);
 const filter = ref('');
 
@@ -66,12 +69,12 @@ async function loadPurchases() {
   loading.value = true;
   try {
     const res = await fetchHttpResource(resources.allPurchases());
-    purchases.value = Array.isArray(res.data) ? res.data : (res.data as any)?.data || [];
+    purchases.value = Array.isArray(res.data) ? res.data as Purchase[] : (res.data as unknown as { data: Purchase[] })?.data || [];
   } catch { $q.notify({ type: 'negative', message: 'Error al cargar compras' }); }
   finally { loading.value = false; }
 }
 
-function viewPurchase(row: Record<string, unknown>) {
+function viewPurchase(row: Purchase) {
   $q.notify({ type: 'info', message: `Compra #${row.id}`, timeout: 2000 });
 }
 

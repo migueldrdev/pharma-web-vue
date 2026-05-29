@@ -9,12 +9,14 @@
 
     <q-card flat bordered>
       <q-card-section>
-        <q-input v-model="filter" label="Buscar" outlined dense clearable debounce="300" class="q-mb-md"><template #prepend><q-icon name="search" /></template></q-input>
+        <q-input v-model="filter" label="Buscar" outlined dense clearable debounce="300" class="q-mb-md">
+          <template #prepend><q-icon name="search" /></template>
+        </q-input>
         <q-table :rows="items" :columns="columns" :loading="loading" :filter="filter" row-key="id" flat dense :rows-per-page-options="[10, 20, 50]">
           <template #body-cell-actions="props">
             <q-td :props="props">
-              <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(props.row)"><q-tooltip>Editar</q-tooltip></q-btn>
-              <q-btn icon="delete" size="sm" flat round color="negative" @click="showDelete = true; deleteTarget = props.row"><q-tooltip>Eliminar</q-tooltip></q-btn>
+              <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(props.row)" />
+              <q-btn icon="delete" size="sm" flat round color="negative" @click="confirmDelete(props.row)" />
             </q-td>
           </template>
         </q-table>
@@ -30,20 +32,23 @@
           <q-input v-model="form.phone" label="Teléfono" outlined dense class="q-mb-sm" />
           <q-input v-model="form.address" label="Dirección" outlined dense class="q-mb-sm" />
         </q-card-section>
-        <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn unelevated color="primary" label="Guardar" @click="save" :loading="saving" /></q-card-actions>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn unelevated color="primary" label="Guardar" @click="void save()" :loading="saving" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <AppConfirmDialog v-model="showDelete" title="Eliminar proveedor" :message="`¿Eliminar \"${deleteTarget?.name}\"?`" confirm-label="Eliminar" color="negative" @confirm="handleDelete" />
+    <AppConfirmDialog v-model="showDelete" title="Eliminar proveedor" :message="deleteMessage" color="negative" confirm-label="Eliminar" @confirm="void handleDelete()" />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
-import { useFetchHttp, IHttpResourceOption } from '@composables/useFetchHttp';
+import { useFetchHttp } from '@composables/useFetchHttp';
 
 interface Supplier { id: number; name: string; email: string; phone: string; address: string; }
 
@@ -67,40 +72,81 @@ const columns = [
   { name: 'actions', label: '', field: 'id', align: 'center' as const },
 ];
 
-const apiPath = '/supplier';
+const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? ''}"?`);
+
+function confirmDelete(row: Supplier) {
+  deleteTarget.value = row;
+  showDelete.value = true;
+}
 
 async function load() {
   loading.value = true;
-  try { const r = await fetchHttpResource<{ data: Supplier[] }>({ path: apiPath, method: 0 as unknown as 'get' } as IHttpResourceOption); items.value = Array.isArray(r.data) ? r.data as Supplier[] : (r.data as any)?.data || []; }
-  catch { $q.notify({ type: 'negative', message: 'Error al cargar' }); }
-  finally { loading.value = false; }
+  try {
+    const r = await fetchHttpResource({ path: '/supplier', method: 'get' as never });
+    items.value = Array.isArray(r.data) ? r.data as Supplier[] : (r.data as unknown as { data: Supplier[] })?.data || [];
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar proveedores' });
+  } finally {
+    loading.value = false;
+  }
 }
 
-function openCreate() { form.value = { id: null, name: '', email: '', phone: '', address: '' }; isEdit.value = false; showForm.value = true; }
-function openEdit(row: Supplier) { form.value = { ...row }; isEdit.value = true; showForm.value = true; }
+function openCreate() {
+  form.value = { id: null, name: '', email: '', phone: '', address: '' };
+  isEdit.value = false;
+  showForm.value = true;
+}
+
+function openEdit(row: Supplier) {
+  form.value = { ...row };
+  isEdit.value = true;
+  showForm.value = true;
+}
 
 async function save() {
-  if (!form.value.name) { $q.notify({ type: 'warning', message: 'Nombre requerido' }); return; }
+  if (!form.value.name) {
+    $q.notify({ type: 'warning', message: 'Nombre requerido' });
+    return;
+  }
   saving.value = true;
   try {
+    const url = '/supplier' + (isEdit.value ? `/${form.value.id}` : '');
+    const method = isEdit.value ? 'put' : 'post';
     const r = await fetchHttpResource({
-      path: apiPath + (isEdit.value ? `/${form.value.id}` : ''),
-      method: isEdit.value ? 'put' as unknown as 'put' : 'post' as unknown as 'post',
-      data: form.value as unknown as Record<string, unknown>,
-    } as IHttpResourceOption);
-    if (r.success) { $q.notify({ type: 'positive', message: isEdit.value ? 'Actualizado' : 'Creado' }); showForm.value = false; load(); }
-    else { $q.notify({ type: 'negative', message: r.message || 'Error' }); }
-  } catch { $q.notify({ type: 'negative', message: 'Error al guardar' }); }
-  finally { saving.value = false; }
+      path: url,
+      method: method as never,
+      data: form.value as never,
+    });
+    if (r.success) {
+      $q.notify({ type: 'positive', message: isEdit.value ? 'Actualizado' : 'Creado' });
+      showForm.value = false;
+      void load();
+    } else {
+      $q.notify({ type: 'negative', message: r.message || 'Error' });
+    }
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al guardar' });
+  } finally {
+    saving.value = false;
+  }
 }
 
 async function handleDelete() {
   if (!deleteTarget.value) return;
   try {
-    const r = await fetchHttpResource({ path: `${apiPath}/${deleteTarget.value.id}`, method: 'delete' as unknown as 'delete' } as IHttpResourceOption);
-    if (r.success) { $q.notify({ type: 'positive', message: 'Eliminado' }); load(); }
-    else { $q.notify({ type: 'negative', message: r.message || 'Error' }); }
-  } catch { $q.notify({ type: 'negative', message: 'Error' }); }
+    const r = await fetchHttpResource({
+      path: `/supplier/${deleteTarget.value.id}`,
+      method: 'delete' as never,
+    });
+    if (r.success) {
+      $q.notify({ type: 'positive', message: 'Eliminado' });
+      void load();
+    } else {
+      $q.notify({ type: 'negative', message: r.message || 'Error' });
+    }
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al eliminar' });
+  }
 }
 
 onMounted(() => { void load(); });
