@@ -277,7 +277,6 @@ import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
 import { IComboItem } from '@interfaces/IComboItem';
 import { useComboStore } from '@stores/combos/comboStore';
-import { ComboDataKey } from '@/types/ComboDataKeys';
 
 interface TableColumn {
   name: string;
@@ -559,7 +558,7 @@ const deleteProduct = async (id: number) => {
     await fetchHttpResource(resources.deleteProduct(id));
     $q.notify({ type: 'positive', message: 'Producto eliminado correctamente' });
     await loadProducts();
-  } catch (error) {
+  } catch (_error) {
     $q.notify({ type: 'negative', message: 'Error al eliminar producto' });
   }
 };
@@ -572,7 +571,7 @@ const deleteMultipleProducts = async () => {
     selectedProducts.value = [];
     $q.notify({ type: 'positive', message: 'Productos eliminados correctamente' });
     await loadProducts();
-  } catch (error) {
+  } catch (_error) {
     $q.notify({ type: 'negative', message: 'Error al eliminar productos' });
   }
 };

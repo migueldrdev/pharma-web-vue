@@ -504,10 +504,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, nextTick, onMounted, onBeforeMount } from 'vue';
 import { useQuasar } from 'quasar';
 import { resources } from '../api-resource/ApiResource';
-import { Product } from '../interface/ProductInterfaces';
 import { useFetchHttp, IHttpResourceOption } from '@composables/useFetchHttp';
 import { IComboItem } from '@interfaces/IComboItem'; // Importa la interfaz
 import { useComboStore } from '@stores/combos/comboStore';
@@ -731,7 +729,7 @@ const simulateImageUpload = async (file: File) => {
       type: 'positive',
       message: 'Imagen subida correctamente',
     });
-  } catch (error) {
+  } catch (_error) {
     $q.notify({
       type: 'negative',
       message: 'Error al subir la imagen',
@@ -786,7 +784,7 @@ const createCategory = async (name: string) => {
       type: 'positive',
       message: 'Categoría creada correctamente',
     });
-  } catch (error) {
+  } catch (_error) {
     $q.notify({
       type: 'negative',
       message: 'Error al crear la categoría',

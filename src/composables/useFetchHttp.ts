@@ -288,18 +288,6 @@ export function useFetchHttp() {
       otherData: [],
     });
 
-  // onUnauthorized se mantiene para consistencia, pero su lógica de redirección
-  // está en el interceptor global. Aquí solo formatea la respuesta de error.
-  const onUnauthorized = (response: AxiosResponse<any>): IHttpResponse<any> => ({
-    responseCode: 'IKERR',
-    responseAction: '',
-    success: false,
-    data: [],
-    message: response.data?.message ?? 'Recurso no autorizado',
-    otherMessage: '',
-    otherData: [],
-  });
-
   // Modificado: ahora devuelve una Promesa que resuelve a IHttpResponse<any>
   const onNotFound = (response: AxiosResponse<any>): Promise<IHttpResponse<any>> =>
     Promise.resolve({

@@ -97,7 +97,7 @@ const cartCols = [
 ];
 const cartTotal = computed(() => cart.value.reduce((s, x) => s + x.subtotal, 0));
 
-function filterProducts(val: string, update: (fn: () => void) => void) {
+function filterProducts(val: string, update: (_fn: () => void) => void) {
   update(() => { productOptions.value = val ? allProducts.value.filter((p) => p.label.toLowerCase().includes(val.toLowerCase())) : allProducts.value.slice(0, 20); });
 }
 

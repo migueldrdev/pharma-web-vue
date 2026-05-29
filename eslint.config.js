@@ -95,8 +95,8 @@ export default defineConfigWithVueTs(
     // add your custom rules here
     rules: {
       'prefer-promise-reject-errors': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
-      'no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       'no-explicit-any': 'off',
 

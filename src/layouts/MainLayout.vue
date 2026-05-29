@@ -701,7 +701,7 @@ const logout = async () => {
     });
 
     return router.push('/login');
-  } catch (error) {
+  } catch (_error) {
     Notify.create({
       message: 'Error al cerrar sesión',
       type: 'negative',
@@ -728,7 +728,7 @@ onMounted(async () => {
 
     // Simulación de delay de API
     await new Promise((resolve) => setTimeout(resolve, 1000));
-  } catch (error) {
+  } catch (_error) {
     console.error('Error loading menu data:', error);
   } finally {
     hide();

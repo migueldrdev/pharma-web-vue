@@ -658,7 +658,7 @@ const executeAction = (actionId: string) => {
   });
 };
 
-const exportChart = (chartType: string) => {
+const exportChart = (_chartType: string) => {
   Notify.create({
     type: 'info',
     message: 'Exportando gráfico...',

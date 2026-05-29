@@ -162,7 +162,7 @@ const cartColumns = [
   { name: 'actions', label: '', field: 'actions', align: 'center' as const },
 ];
 
-function filterProducts(val: string, update: (fn: () => void) => void) {
+function filterProducts(val: string, update: (_fn: () => void) => void) {
   update(() => {
     if (!val) {
       productOptions.value = allProducts.value.slice(0, 20);

@@ -1,4 +1,4 @@
-import { HttpMethods, IHttpResourceOption } from '@composables/useFetchHttp';
+import { HttpMethods } from '@composables/useFetchHttp';
 
 const resources = {
   createProduct: () => ({

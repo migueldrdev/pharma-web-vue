@@ -1,7 +1,6 @@
 // src/composables/useCombo.ts
 // Composable reutilizable para cargar datos de combos (selects) desde la API.
 
-import { Ref, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
 import { resources } from '@api-resources/GeneralApiResource'; // Asegúrate de que esta ruta sea correcta
