@@ -11,7 +11,7 @@ export default route(() => {
     routes,
   });
 
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     const permissionsStore = usePermissionsStore();
 
@@ -26,6 +26,11 @@ export default route(() => {
       return next('/');
     }
 
+    // Inicializar permisos si el usuario está autenticado pero no tiene permisos cargados
+    if (authStore.user && !permissionsStore.userPermissions.length) {
+      await permissionsStore.initializeUserPermissions();
+    }
+
     if (to.meta?.permission && authStore.user) {
       const hasPermission = permissionsStore.canAccessRoute(to.meta.permission as string);
       if (!hasPermission) {
@@ -35,7 +40,10 @@ export default route(() => {
           position: 'top-right',
           timeout: 3000,
         });
-        return next('/');
+        // No redirigir si ya estamos en '/', para evitar loop infinito
+        if (to.path !== '/') {
+          return next('/');
+        }
       }
     }
 
