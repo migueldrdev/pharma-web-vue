@@ -54,6 +54,7 @@ import FinancialReport from '@pages/Reports/Financial.vue';
 
 // Páginas de Configuración
 import GeneralSettings from '@pages/Settings/General.vue';
+import SettingsIndex from '@pages/Settings/Index.vue';
 import UsersIndex from '@pages/Settings/Users/Index.vue';
 import PermissionsIndex from '@pages/Settings/Permissions/Index.vue';
 import BackupIndex from '@pages/Settings/Backup/Index.vue';
@@ -247,6 +248,17 @@ export const routes: RouteRecordRaw[] = [
       },
 
       // Configuración
+      {
+        path: '/settings',
+        name: 'settings',
+        component: SettingsIndex,
+        meta: {
+          requiresAuth: true,
+          permission: 'settings.view',
+          title: 'Configuración',
+          breadcrumb: 'Configuración',
+        },
+      },
       {
         path: '/settings/general',
         name: 'general-settings',

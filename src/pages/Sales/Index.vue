@@ -22,7 +22,7 @@
       :filter="filter"
       title="Lista de Ventas"
       @update:filter="filter = $event"
-      @row-click="(_, row) => onRowClick(row as never)"
+      @row-click="(_: Event, row: Sale) => onRowClick(row as never)"
     >
       <template #item-actions="{ row }">
         <q-btn icon="visibility" size="sm" flat round color="info" @click.stop="onRowClick(row)">
@@ -51,11 +51,16 @@
             </div>
             <div class="col-md-6 col-xs-12">
               <div class="text-caption text-grey">Cliente</div>
-              <div class="text-body1">{{ selectedSale.customer_name || selectedSale.client_name || 'Anónimo' }}</div>
+              <div class="text-body1">
+                {{ selectedSale.customer_name || selectedSale.client_name || 'Anónimo' }}
+              </div>
             </div>
             <div class="col-md-6 col-xs-12">
               <div class="text-caption text-grey">Documento</div>
-              <div class="text-body1">{{ selectedSale.document_type_name || '-' }} {{ selectedSale.document_number || '' }}</div>
+              <div class="text-body1">
+                {{ selectedSale.document_type_name || '-' }}
+                {{ selectedSale.document_number || '' }}
+              </div>
             </div>
           </div>
           <q-separator class="q-mb-md" />
@@ -63,12 +68,14 @@
           <q-list dense separator v-if="selectedSale.details">
             <q-item v-for="detail in selectedSale.details" :key="detail.id">
               <q-item-section>
-                <q-item-label>{{ detail.product?.name || `Producto #${detail.product_id}` }}</q-item-label>
-                <q-item-label caption>{{ detail.quantity }} x S/ {{ Number(detail.price).toFixed(2) }}</q-item-label>
+                <q-item-label>{{
+                  detail.product?.name || `Producto #${detail.product_id}`
+                }}</q-item-label>
+                <q-item-label caption
+                  >{{ detail.quantity }} x S/ {{ Number(detail.price).toFixed(2) }}</q-item-label
+                >
               </q-item-section>
-              <q-item-section side>
-                S/ {{ Number(detail.subtotal).toFixed(2) }}
-              </q-item-section>
+              <q-item-section side> S/ {{ Number(detail.subtotal).toFixed(2) }} </q-item-section>
             </q-item>
           </q-list>
         </q-card-section>
@@ -133,12 +140,14 @@ const formattedSales = computed(() =>
     status: s.active ? 'Activa' : 'Anulada',
     sale_date: formatDate(s.sale_date),
   })),
-)
+);
 
 function formatDate(date: string | null) {
   if (!date) return '-';
   return new Date(date).toLocaleDateString('es-PE', {
-    year: 'numeric', month: 'long', day: 'numeric',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 }
 
@@ -147,7 +156,9 @@ async function loadSales() {
   try {
     const response = await fetchHttpResource<{ data: Sale[] }>(resources.allSales());
     if (response.success && Array.isArray(response.data)) {
-      sales.value = Array.isArray(response.data) ? response.data : (response.data as any).data || [];
+      sales.value = Array.isArray(response.data)
+        ? response.data
+        : (response.data as any).data || [];
     } else if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       sales.value = (response.data as any).data;
     } else {
@@ -160,7 +171,6 @@ async function loadSales() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function onRowClick(row: { id: number } & Record<string, unknown>) {
   void viewSale(row);
 }
@@ -183,5 +193,7 @@ async function viewSale(row: { id: number } & Record<string, unknown>) {
   }
 }
 
-onMounted(() => { void loadSales(); });
+onMounted(() => {
+  void loadSales();
+});
 </script>

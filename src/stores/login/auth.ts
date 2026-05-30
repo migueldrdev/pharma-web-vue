@@ -291,6 +291,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 'settings',
           label: 'Configuración',
           icon: 'settings',
+          route: '/settings',
           permission: 'settings.view',
           defaultOpen: false,
           order: 7,

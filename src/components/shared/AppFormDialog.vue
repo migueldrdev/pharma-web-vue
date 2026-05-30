@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Screen } from 'quasar';
 
 const modelValue = defineModel<boolean>({ required: true });
 
@@ -30,12 +31,12 @@ defineExpose({ formRef, close: onHide });
   <q-dialog
     v-model="modelValue"
     :persistent="persistent ?? true"
-    :maximized="$q.screen.lt.md"
+    :maximized="Screen.lt.md"
     transition-show="slide-up"
     transition-hide="slide-down"
     @hide="onHide"
   >
-    <q-card :style="{ width: $q.screen.lt.md ? '100%' : width ?? '700px', maxWidth: '95vw' }">
+    <q-card :style="{ width: Screen.lt.md ? '100%' : (width ?? '700px'), maxWidth: '95vw' }">
       <q-bar class="bg-primary text-white">
         <q-icon name="edit" />
         <div class="text-subtitle1 q-ml-sm">{{ title }}</div>

@@ -15,7 +15,7 @@ export default defineConfigWithVueTs(
      *
      * ESLint requires "ignores" key to be the only one in this object
      */
-    // ignores: []
+    ignores: ['/dist', '/src-capacitor', '/src-cordova', '/.quasar', '/node_modules', '/src-ssr']
   },
 
   pluginQuasar.configs.recommended(),

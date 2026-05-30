@@ -2,7 +2,7 @@
   <q-layout view="hHh Lpr lff">
     <!-- view="hHh lpR fFf" -->
     <!-- Header / AppBar -->
-    <q-header elevated class="modern-header" :class="{ 'dark-header': $q.dark.isActive }">
+    <q-header elevated class="modern-header" :class="{ 'dark-header': Dark.isActive }">
       <q-toolbar class="toolbar-content">
         <!-- Menu Toggle -->
         <q-btn
@@ -94,7 +94,7 @@
           flat
           dense
           round
-          :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+          :icon="Dark.isActive ? 'light_mode' : 'dark_mode'"
           class="header-btn"
           @click="toggleTheme"
         >
@@ -177,7 +177,7 @@
       show-if-above
       bordered
       class="modern-drawer"
-      :class="{ 'dark-drawer': $q.dark.isActive }"
+      :class="{ 'dark-drawer': Dark.isActive }"
       :width="280"
       :mini="miniState"
     >
@@ -225,8 +225,8 @@
                 clickable
                 :to="child.route"
                 class="menu-child"
-                :class="{ active: $route.path === child.route }"
-                @click="navigateTo(child.route)"
+                :class="{ active: route.path === child.route }"
+                @click="navigateTo(child.route ?? '/')"
               >
                 <q-item-section avatar>
                   <q-icon :name="child.icon" size="20px" />
@@ -252,8 +252,8 @@
               clickable
               :to="item.route"
               class="menu-item"
-              :class="{ active: $route.path === item.route }"
-              @click="navigateTo(item.route)"
+              :class="{ active: route.path === item.route }"
+              @click="navigateTo(item.route ?? '/')"
             >
               <q-item-section avatar>
                 <q-icon :name="item.icon" size="24px" />
@@ -323,7 +323,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useQuasar, Notify } from 'quasar';
+import { Dark, Notify } from 'quasar';
 import { useAuthStore, useMenuStore } from '@stores/login/auth';
 import { usePermissionsStore } from '@stores/login/permissions';
 import { useLoading } from '@composables/useLoading';
@@ -356,7 +356,6 @@ interface User {
 }
 
 // Composables
-const $q = useQuasar();
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
@@ -614,7 +613,7 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
         crumbs.push({
           label: menuItem.label,
           icon: menuItem.icon,
-          to: index === segments.length - 1 ? undefined : currentPath,
+          to: index === segments.length - 1 ? '/' : currentPath,
         });
       }
     });
@@ -629,8 +628,8 @@ const toggleLeftDrawer = () => {
 };
 
 const toggleTheme = () => {
-  $q.dark.toggle();
-  const theme = $q.dark.isActive ? 'dark' : 'light';
+  Dark.toggle();
+  const theme = Dark.isActive ? 'dark' : 'light';
   localStorage.setItem('theme', theme);
 
   Notify.create({
@@ -717,7 +716,7 @@ onMounted(async () => {
   // Cargar tema guardado
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
-    $q.dark.set(savedTheme === 'dark');
+    Dark.set(savedTheme === 'dark');
   }
 
   // Simular carga de menús desde API
@@ -739,12 +738,20 @@ onMounted(async () => {
 <style lang="scss" scoped>
 // Header Styles
 .modern-header {
-  background: linear-gradient(135deg, $primary-color 0%, scale-color($primary-color, $lightness: -10%) 100%);
+  background: linear-gradient(
+    135deg,
+    $primary-color 0%,
+    scale-color($primary-color, $lightness: -10%) 100%
+  );
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   &.dark-header {
-    background: linear-gradient(135deg, $dark-surface 0%, scale-color($dark-surface, $lightness: -5%) 100%);
+    background: linear-gradient(
+      135deg,
+      $dark-surface 0%,
+      scale-color($dark-surface, $lightness: -5%) 100%
+    );
   }
 }
 
@@ -917,7 +924,11 @@ onMounted(async () => {
 .drawer-header {
   padding: 20px;
   border-bottom: 1px solid #e9ecef;
-  background: linear-gradient(135deg, $secondary-color 0%, scale-color($secondary-color, $lightness: 3%) 100%);
+  background: linear-gradient(
+    135deg,
+    $secondary-color 0%,
+    scale-color($secondary-color, $lightness: 3%) 100%
+  );
 
   .dark-drawer & {
     background: linear-gradient(135deg, $dark-bg 0%, scale-color($dark-bg, $lightness: 5%) 100%);
@@ -1215,7 +1226,11 @@ onMounted(async () => {
 // Dark Mode Adjustments
 .body--dark {
   .modern-header {
-    background: linear-gradient(135deg, $dark-surface 0%, scale-color($dark-surface, $lightness: -5%) 100%);
+    background: linear-gradient(
+      135deg,
+      $dark-surface 0%,
+      scale-color($dark-surface, $lightness: -5%) 100%
+    );
   }
 
   .modern-drawer {
