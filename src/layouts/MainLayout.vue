@@ -739,12 +739,12 @@ onMounted(async () => {
 <style lang="scss" scoped>
 // Header Styles
 .modern-header {
-  background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+  background: linear-gradient(135deg, $primary-color 0%, scale-color($primary-color, $lightness: -10%) 100%);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   &.dark-header {
-    background: linear-gradient(135deg, $dark-surface 0%, darken($dark-surface, 5%) 100%);
+    background: linear-gradient(135deg, $dark-surface 0%, scale-color($dark-surface, $lightness: -5%) 100%);
   }
 }
 
@@ -917,10 +917,10 @@ onMounted(async () => {
 .drawer-header {
   padding: 20px;
   border-bottom: 1px solid #e9ecef;
-  background: linear-gradient(135deg, $secondary-color 0%, lighten($secondary-color, 3%) 100%);
+  background: linear-gradient(135deg, $secondary-color 0%, scale-color($secondary-color, $lightness: 3%) 100%);
 
   .dark-drawer & {
-    background: linear-gradient(135deg, $dark-bg 0%, lighten($dark-bg, 5%) 100%);
+    background: linear-gradient(135deg, $dark-bg 0%, scale-color($dark-bg, $lightness: 5%) 100%);
     border-bottom-color: #3d3d3d;
   }
 
@@ -1215,7 +1215,7 @@ onMounted(async () => {
 // Dark Mode Adjustments
 .body--dark {
   .modern-header {
-    background: linear-gradient(135deg, $dark-surface 0%, darken($dark-surface, 5%) 100%);
+    background: linear-gradient(135deg, $dark-surface 0%, scale-color($dark-surface, $lightness: -5%) 100%);
   }
 
   .modern-drawer {

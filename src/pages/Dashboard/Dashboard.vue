@@ -774,7 +774,7 @@ onMounted(() => {
   flex-shrink: 0;
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, $primary-color, lighten($primary-color, 10%));
+  background: linear-gradient(135deg, $primary-color, scale-color($primary-color, $lightness: 10%));
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -889,7 +889,7 @@ onMounted(() => {
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid $border-color;
-  background: lighten($light-bg, 2%);
+  background: scale-color($light-bg, $lightness: 2%);
 
   .table-title {
     display: flex;
@@ -915,7 +915,7 @@ onMounted(() => {
   }
 
   :deep(.q-table thead th) {
-    background-color: lighten($light-bg, 2%);
+    background-color: scale-color($light-bg, $lightness: 2%);
     color: $text-primary;
     font-weight: 600;
     font-size: 13px;
@@ -929,7 +929,7 @@ onMounted(() => {
 
   :deep(.q-table tbody td) {
     padding: 16px 12px;
-    border-bottom: 1px solid lighten($border-color, 50%);
+    border-bottom: 1px solid scale-color($border-color, $lightness: 50%);
   }
 }
 

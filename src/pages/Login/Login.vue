@@ -396,7 +396,7 @@ onMounted(() => {
 }
 
 .header-section {
-  background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+  background: linear-gradient(135deg, $primary-color, scale-color($primary-color, $lightness: -10%));
   color: $white;
   padding: 24px 24px;
   position: relative;
@@ -545,7 +545,7 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, $primary-color, darken($primary-color, 8%));
+  background: linear-gradient(135deg, $primary-color, scale-color($primary-color, $lightness: -8%));
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
