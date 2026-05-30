@@ -11,7 +11,7 @@ export default route(() => {
     routes,
   });
 
-  router.beforeEach(async (to, from, next) => {
+  router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
     const permissionsStore = usePermissionsStore();
 
@@ -28,7 +28,7 @@ export default route(() => {
 
     // Inicializar permisos si el usuario está autenticado pero no tiene permisos cargados
     if (authStore.user && !permissionsStore.userPermissions.length) {
-      await permissionsStore.initializeUserPermissions();
+      permissionsStore.initializeUserPermissions();
     }
 
     if (to.meta?.permission && authStore.user) {
