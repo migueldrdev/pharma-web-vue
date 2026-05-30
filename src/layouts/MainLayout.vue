@@ -729,7 +729,7 @@ onMounted(async () => {
     // Simulación de delay de API
     await new Promise((resolve) => setTimeout(resolve, 1000));
   } catch (_error) {
-    console.error('Error loading menu data:', error);
+    console.error('Error loading menu data:', _error);
   } finally {
     hide();
   }

@@ -33,5 +33,5 @@ const columns = [{ name: 'id', label: '#', field: 'id', align: 'left' as const }
 const monthRevenue = computed(() => sales.value.reduce((s, x) => s + Number(x.total || 0), 0));
 const totalSales = computed(() => sales.value.length);
 const avgTicket = computed(() => sales.value.length ? monthRevenue.value / sales.value.length : 0);
-onMounted(async () => { loading.value = true; try { const r = await fetchHttpResource({ path: '/sale', method: 'get' as never }); sales.value = Array.isArray(r.data) ? r.data as Sale[] : (r.data as never)?.data || []; } catch { $q.notify({ type: 'negative', message: 'Error' }); } finally { loading.value = false; } });
+onMounted(async () => { loading.value = true; try { const r = await fetchHttpResource({ path: '/sale', method: 'get' as never }); sales.value = Array.isArray(r.data) ? r.data as Sale[] : ((r.data as unknown as Record<string, unknown>)?.data as Sale[]) || []; } catch { $q.notify({ type: 'negative', message: 'Error' }); } finally { loading.value = false; } });
 </script>

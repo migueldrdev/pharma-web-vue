@@ -602,7 +602,7 @@ const refreshData = async () => {
     ]);
 
     const sales = Array.isArray(sRes.data) ? sRes.data as SaleRecord[] : ((sRes.data as unknown as { data: SaleRecord[] })?.data) || [];
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().slice(0, 10);
     const todaySales = sales.filter((s) => String(s.sale_date ?? '').startsWith(today));
     const todayRevenue = todaySales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
     const monthRevenue = sales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);

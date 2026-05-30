@@ -72,13 +72,13 @@ const columns = [
 ];
 
 const dailyTotal = computed(() => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().slice(0, 10);
   return sales.value
     .filter((s) => (s.sale_date || '').startsWith(today))
     .reduce((s, x) => s + (Number(x.total) || 0), 0);
 });
 const dailyCount = computed(() =>
-  sales.value.filter((s) => (s.sale_date || '').startsWith(new Date().toISOString().split('T')[0])).length,
+  sales.value.filter((s) => (s.sale_date || '').startsWith(new Date().toISOString().slice(0, 10))).length,
 );
 const monthlyTotal = computed(() => sales.value.reduce((s, x) => s + (Number(x.total) || 0), 0));
 const monthlyCount = computed(() => sales.value.length);

@@ -13,16 +13,18 @@
     <q-btn flat color="negative" icon="logout" label="Cerrar Sesión" @click="logout" />
   </q-page>
 </template>
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { useAuthStore } from '@stores/login/auth';
+import { useRouter } from 'vue-router';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
+
 const $q = useQuasar();
-const auth = useAuthStore();
+const router = useRouter();
 const saving = ref(false);
-const form = ref({ name: auth.user?.name || 'Administrador', email: auth.user?.email || 'admin@farmacia.com' });
-const initials = computed(() => form.value.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2));
+const form = ref({ name: 'Administrador', email: 'admin@farmacia.com' });
+const initials = computed(() => form.value.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2));
 function save() { saving.value = true; setTimeout(() => { $q.notify({ type: 'positive', message: 'Perfil actualizado' }); saving.value = false; }, 800); }
-function logout() { void auth.logout(); }
+function logout() { localStorage.removeItem('token'); void router.push('/login'); }
 </script>

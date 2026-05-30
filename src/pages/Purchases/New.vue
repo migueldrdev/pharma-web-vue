@@ -66,7 +66,7 @@ import { useFetchHttp, IHttpResourceOption } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
 import type { IComboItem } from '@interfaces/IComboItem';
 
-interface CartItem { product_id: number; name: string; quantity: number; price: number; subtotal: number; batch_number?: string; expiration_date?: string; }
+interface CartItem { product_id: number; name: string; quantity: number; price: number; subtotal: number; batch_number?: string | undefined; expiration_date?: string | undefined; }
 
 const router = useRouter();
 const { fetchHttpResource } = useFetchHttp();

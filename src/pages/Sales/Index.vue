@@ -22,10 +22,10 @@
       :filter="filter"
       title="Lista de Ventas"
       @update:filter="filter = $event"
-      @row-click="(_, row) => viewSale(row)"
+      @row-click="(_, row) => onRowClick(row as never)"
     >
       <template #item-actions="{ row }">
-        <q-btn icon="visibility" size="sm" flat round color="info" @click.stop="viewSale(row)">
+        <q-btn icon="visibility" size="sm" flat round color="info" @click.stop="onRowClick(row)">
           <q-tooltip>Ver detalles</q-tooltip>
         </q-btn>
       </template>
@@ -158,6 +158,11 @@ async function loadSales() {
   } finally {
     loading.value = false;
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function onRowClick(row: { id: number } & Record<string, unknown>) {
+  void viewSale(row);
 }
 
 async function viewSale(row: { id: number } & Record<string, unknown>) {
