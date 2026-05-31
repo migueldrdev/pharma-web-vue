@@ -7,11 +7,14 @@ const props = defineProps<{
   loading?: boolean;
 }>();
 
+const hasData = computed(() => props.data.length > 0);
+
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
   chart: { ...baseChartOptions(280).chart, type: 'pie' },
   colors: ['#00B4A6', '#FF6B6B', '#FF9500', '#6C5CE7', '#A0D911'],
   series: pieChartSeries(props.data.map(([name, y]) => ({ name, y }))),
+  accessibility: { enabled: false },
 }));
 </script>
 
@@ -25,10 +28,10 @@ const chartOptions = computed(() => ({
       <div v-if="loading" class="flex flex-center" style="height: 280px">
         <q-spinner color="secondary" size="40px" />
       </div>
-      <div v-else-if="!data.length" class="flex flex-center text-grey-6" style="height: 280px">
+      <div v-else-if="!hasData" class="flex flex-center text-grey-6" style="height: 280px">
         Sin datos disponibles
       </div>
-      <highcharts v-else :options="chartOptions" />
+      <highcharts v-else :key="data.join()" :options="chartOptions" />
     </q-card-section>
   </q-card>
 </template>

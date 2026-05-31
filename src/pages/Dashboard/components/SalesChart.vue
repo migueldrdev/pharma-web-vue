@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import Highcharts from 'highcharts';
+import { computed } from 'vue';
 import { baseChartOptions, salesChartSeries } from '../charts/chartOptions';
 
 const props = defineProps<{
@@ -8,6 +7,8 @@ const props = defineProps<{
   categories: string[];
   loading?: boolean;
 }>();
+
+const hasData = computed(() => props.data.length > 0);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
@@ -19,6 +20,7 @@ const chartOptions = computed(() => ({
   plotOptions: {
     line: { dataLabels: { enabled: true, format: 'S/ {y}' } },
   },
+  accessibility: { enabled: false },
 }));
 </script>
 
@@ -34,10 +36,10 @@ const chartOptions = computed(() => ({
       <div v-if="loading" class="flex flex-center" style="height: 280px">
         <q-spinner color="primary" size="40px" />
       </div>
-      <div v-else-if="!data.length" class="flex flex-center text-grey-6" style="height: 280px">
+      <div v-else-if="!hasData" class="flex flex-center text-grey-6" style="height: 280px">
         Sin datos disponibles
       </div>
-      <highcharts v-else :options="chartOptions" />
+      <highcharts v-else :key="data.join()" :options="chartOptions" />
     </q-card-section>
   </q-card>
 </template>
