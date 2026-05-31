@@ -709,26 +709,15 @@ const logout = async () => {
 };
 
 // Lifecycle
-onMounted(async () => {
+onMounted(() => {
   // Cargar tema guardado
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
     Dark.set(savedTheme === 'dark');
   }
 
-  // Simular carga de menús desde API
-  try {
-    show();
-    await menuStore.loadMenus();
-    await permissionsStore.loadPermissions();
-
-    // Simulación de delay de API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  } catch (_error) {
-    console.error('Error loading menu data:', _error);
-  } finally {
-    hide();
-  }
+  menuStore.loadMenus();
+  permissionsStore.loadPermissions();
 });
 </script>
 

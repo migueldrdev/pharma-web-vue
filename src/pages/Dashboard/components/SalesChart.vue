@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { baseChartOptions, salesChartSeries } from '../charts/chartOptions';
+import HcChart from './HcChart.vue';
 
 const props = defineProps<{
   data: number[];
@@ -39,7 +40,7 @@ const chartOptions = computed(() => ({
       <div v-else-if="!hasData" class="flex flex-center text-grey-6" style="height: 280px">
         Sin datos disponibles
       </div>
-      <highcharts v-else :key="data.join()" :options="chartOptions" />
+      <HcChart v-else :options="chartOptions" />
     </q-card-section>
   </q-card>
 </template>
