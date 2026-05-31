@@ -72,7 +72,7 @@ async function onSubmit(email: string, password: string) {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: -12%) 100%);
+  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
 }
 
 .login-card {
