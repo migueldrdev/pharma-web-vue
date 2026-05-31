@@ -18,20 +18,19 @@ export default route(() => {
     const publicRoutes = ['/login', '/forgot-password', '/register'];
     const isPublicRoute = publicRoutes.includes(to.path);
 
-    if (!authStore.user && !isPublicRoute) {
+    if (!authStore.isAuthenticated && !isPublicRoute) {
       return next('/login');
     }
 
-    if (authStore.user && to.path === '/login') {
+    if (authStore.isAuthenticated && to.path === '/login') {
       return next('/');
     }
 
-    // Inicializar permisos si el usuario está autenticado pero no tiene permisos cargados
-    if (authStore.user && !permissionsStore.userPermissions.length) {
+    if (authStore.isAuthenticated && !permissionsStore.userPermissions.length) {
       permissionsStore.initializeUserPermissions();
     }
 
-    if (to.meta?.permission && authStore.user) {
+    if (to.meta?.permission && authStore.isAuthenticated) {
       const hasPermission = permissionsStore.canAccessRoute(to.meta.permission as string);
       if (!hasPermission) {
         Notify.create({
@@ -40,7 +39,6 @@ export default route(() => {
           position: 'top-right',
           timeout: 3000,
         });
-        // No redirigir si ya estamos en '/', para evitar loop infinito
         if (to.path !== '/') {
           return next('/');
         }

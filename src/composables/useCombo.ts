@@ -1,10 +1,10 @@
 // src/composables/useCombo.ts
 // Composable reutilizable para cargar datos de combos (selects) desde la API.
 
-import { useQuasar } from 'quasar';
-import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
-import { resources } from '@api-resources/GeneralApiResource'; // Asegúrate de que esta ruta sea correcta
-import { IComboItem } from '@interfaces/IComboItem'; // Importa la interfaz del ítem de combo
+import { Notify } from 'quasar';
+import { useFetchHttp, type IHttpResponse } from '@composables/useFetchHttp';
+import { resources } from '@api-resources/GeneralApiResource';
+import type { IComboItem } from '@interfaces/IComboItem';
 import { useComboStore } from '@stores/combos/comboStore';
 
 // Define el tipo para las claves de recursos que son combos
@@ -22,9 +22,7 @@ type ComboResourceKey =
   | 'storageConditionsCombo'; // Asegúrate de que esta clave exista en resources.ts
 
 export function useCombo() {
-  const $q = useQuasar();
-  const { fetchHttpResource, loading } = useFetchHttp(); // Reutiliza el composable useFetchHttp
-  // Instancia el store de Pinia
+  const { fetchHttpResource, loading } = useFetchHttp();
   const comboStore = useComboStore();
 
   /**
@@ -40,11 +38,11 @@ export function useCombo() {
     if (!resources[resourceKey]) {
       const errorMessage = `Recurso de combo '${resourceKey}' no encontrado en la definición de recursos.`;
       console.error(errorMessage);
-      $q.notify({
+      Notify.create({
         type: 'negative',
         message: errorMessage,
       });
-      return Promise.reject(new Error(errorMessage)); // Rechaza la promesa si el recurso no existe
+      return Promise.reject(new Error(errorMessage));
     }
 
     // Obtiene las opciones de la API para el recurso dado
@@ -65,11 +63,11 @@ export function useCombo() {
         const errorMessage =
           response.message || `Error desconocido al cargar el combo '${resourceKey}'.`;
         console.error('Error al cargar datos del combo:', errorMessage);
-        $q.notify({
+        Notify.create({
           type: 'negative',
           message: errorMessage,
         });
-        return Promise.reject(new Error(errorMessage)); // Rechaza la promesa con el mensaje de error
+        return Promise.reject(new Error(errorMessage));
       }
 
       // Si la petición fue exitosa, retorna los datos del combo
@@ -80,18 +78,17 @@ export function useCombo() {
       } else {
         return response.data;
       }
-    } catch (error: any) {
-      // Captura errores de red o errores lanzados por fetchHttpResource
+    } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Error desconocido al cargar datos del combo.';
       console.error(`Error en loadComboData para '${resourceKey}':`, error);
-      $q.notify({
+      Notify.create({
         type: 'negative',
         message: errorMessage,
       });
-      return Promise.reject(new Error(errorMessage)); // Rechaza la promesa con el error capturado
+      return Promise.reject(new Error(errorMessage));
     } finally {
-      loading.value = false; // Desactiva el estado de carga al finalizar
+      loading.value = false;
     }
   };
 

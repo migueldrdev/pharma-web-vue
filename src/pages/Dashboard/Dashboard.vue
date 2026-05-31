@@ -237,8 +237,19 @@ import { Notify } from 'quasar';
 import Highcharts from 'highcharts';
 
 // Interfaces
-interface SaleRecord { id: number; sale_date: string; total: number; details?: { quantity: number }[]; customer_name?: string; }
-interface ProductRecord { id: number; name: string; stock: number; expiration_date?: string; }
+interface SaleRecord {
+  id: number;
+  sale_date: string;
+  total: number;
+  details?: { quantity: number }[];
+  customer_name?: string;
+}
+interface ProductRecord {
+  id: number;
+  name: string;
+  stock: number;
+  expiration_date?: string;
+}
 interface KPI {
   id: string;
   label: string;
@@ -601,27 +612,81 @@ const refreshData = async () => {
       fetchHttpResource({ path: '/product', method: 'get' as never }),
     ]);
 
-    const sales = Array.isArray(sRes.data) ? sRes.data as SaleRecord[] : ((sRes.data as unknown as { data: SaleRecord[] })?.data) || [];
+    const sales = Array.isArray(sRes.data)
+      ? (sRes.data as SaleRecord[])
+      : (sRes.data as unknown as { data: SaleRecord[] })?.data || [];
     const today = new Date().toISOString().slice(0, 10);
     const todaySales = sales.filter((s) => String(s.sale_date ?? '').startsWith(today));
     const todayRevenue = todaySales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
     const monthRevenue = sales.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
 
-    const products = Array.isArray(pRes.data) ? pRes.data as ProductRecord[] : ((pRes.data as unknown as { data: ProductRecord[] })?.data) || [];
+    const products = Array.isArray(pRes.data)
+      ? (pRes.data as ProductRecord[])
+      : (pRes.data as unknown as { data: ProductRecord[] })?.data || [];
     const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
-    const todayQty = todaySales.reduce((sum, s) => sum + ((s.details)?.reduce((d, x) => d + Number(x.quantity || 0), 0) || 0), 0);
+    const todayQty = todaySales.reduce(
+      (sum, s) => sum + (s.details?.reduce((d, x) => d + Number(x.quantity || 0), 0) || 0),
+      0,
+    );
     const expiringCount = products.filter((p) => p.expiration_date).length;
 
     kpis.value = [
-      { id: '1', label: 'Ventas Hoy', value: `S/ ${todayRevenue.toFixed(2)}`, icon: 'point_of_sale', trend: 0, type: 'sales' },
-      { id: '2', label: 'Productos Vendidos', value: String(todayQty), icon: 'medication', trend: 0, type: 'products' },
-      { id: '3', label: 'Total Ventas', value: String(todaySales.length), icon: 'receipt_long', trend: 0, type: 'sales' },
-      { id: '4', label: 'Productos en Stock', value: String(totalStock), icon: 'inventory', trend: 0, type: 'inventory' },
-      { id: '5', label: 'Ingresos del Mes', value: `S/ ${monthRevenue.toFixed(2)}`, icon: 'account_balance_wallet', trend: 0, type: 'revenue' },
-      { id: '6', label: 'Productos por Vencer', value: String(expiringCount), icon: 'event_busy', trend: 0, type: 'expiring' },
+      {
+        id: '1',
+        label: 'Ventas Hoy',
+        value: `S/ ${todayRevenue.toFixed(2)}`,
+        icon: 'point_of_sale',
+        trend: 0,
+        type: 'sales',
+      },
+      {
+        id: '2',
+        label: 'Productos Vendidos',
+        value: String(todayQty),
+        icon: 'medication',
+        trend: 0,
+        type: 'products',
+      },
+      {
+        id: '3',
+        label: 'Total Ventas',
+        value: String(todaySales.length),
+        icon: 'receipt_long',
+        trend: 0,
+        type: 'sales',
+      },
+      {
+        id: '4',
+        label: 'Productos en Stock',
+        value: String(totalStock),
+        icon: 'inventory',
+        trend: 0,
+        type: 'inventory',
+      },
+      {
+        id: '5',
+        label: 'Ingresos del Mes',
+        value: `S/ ${monthRevenue.toFixed(2)}`,
+        icon: 'account_balance_wallet',
+        trend: 0,
+        type: 'revenue',
+      },
+      {
+        id: '6',
+        label: 'Productos por Vencer',
+        value: String(expiringCount),
+        icon: 'event_busy',
+        trend: 0,
+        type: 'expiring',
+      },
     ];
 
-    Notify.create({ type: 'positive', message: 'Datos actualizados', position: 'top-right', timeout: 2000 });
+    Notify.create({
+      type: 'positive',
+      message: 'Datos actualizados',
+      position: 'top-right',
+      timeout: 2000,
+    });
   } catch {
     Notify.create({ type: 'negative', message: 'Error al cargar métricas', position: 'top-right' });
   } finally {
@@ -676,7 +741,6 @@ onMounted(() => {
 
 .dashboard-container {
   padding: 24px;
-  background-color: $light-bg;
   min-height: 100vh;
 }
 
@@ -690,7 +754,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24px 32px;
-  background: $white;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid $border-color;
@@ -889,7 +952,6 @@ onMounted(() => {
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid $border-color;
-  background: scale-color($light-bg, $lightness: 2%);
 
   .table-title {
     display: flex;
@@ -915,7 +977,6 @@ onMounted(() => {
   }
 
   :deep(.q-table thead th) {
-    background-color: scale-color($light-bg, $lightness: 2%);
     color: $text-primary;
     font-weight: 600;
     font-size: 13px;

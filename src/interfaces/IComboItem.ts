@@ -1,5 +1,4 @@
-export interface IComboItem {
+export interface IComboItem<TValue = string | number> {
   label: string;
-  value: any; // El valor puede ser number, string, etc., dependiendo del ID
-  [key: string]: any; // Permite propiedades adicionales de forma opcional
+  value: TValue;
 }

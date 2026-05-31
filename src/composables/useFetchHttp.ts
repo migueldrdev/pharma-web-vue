@@ -9,9 +9,9 @@ import axios, {
 import { Notify, QSpinnerHourglass } from 'quasar';
 import { api } from '@/boot/axios'; // Ajusta la ruta si es necesario
 
-// Se usa para gestionar las notificaciones de descarga,
-// si prefieres una sola cola, esto está bien.
-const activeDownloadNotifications: Map<string, any> = new Map();
+import type { QNotifyCreateOptions } from 'quasar';
+
+const activeDownloadNotifications: Map<string, (props: QNotifyCreateOptions) => void> = new Map();
 
 export enum HttpMethods {
   Get = 'get',
@@ -25,12 +25,12 @@ export interface IHttpResourceOption {
   path: string;
   method: HttpMethods;
   slug?: string;
-  headers?: Record<string, any>;
-  params?: Record<string, any>;
-  paramsRoute?: Record<string, any>;
-  data?: Record<string, any>;
+  headers?: Record<string, string>;
+  params?: Record<string, unknown>;
+  paramsRoute?: unknown[];
+  data?: Record<string, unknown> | FormData;
   timeout?: number;
-  responseType?: any;
+  responseType?: 'json' | 'blob' | 'arraybuffer' | 'text';
   download?: boolean;
   nameDocument?: string;
   downloadJson?: boolean;
@@ -39,16 +39,16 @@ export interface IHttpResourceOption {
 }
 
 // Tipo genérico para la propiedad 'data'
-export interface IHttpResponse<TData = any> {
+export interface IHttpResponse<TData = unknown> {
   responseCode: string;
   code?: number;
   responseAction: string;
   success: boolean;
-  data: TData; // Ahora puede ser tipada
+  data: TData;
   title?: string;
   message: string;
   otherMessage: string;
-  otherData?: any[]; // Cambiado a opcional, ya que puede que no siempre esté presente
+  otherData?: unknown[];
 }
 
 export function useFetchHttp() {
@@ -79,7 +79,7 @@ export function useFetchHttp() {
     return {};
   };
 
-  const fetchHttpResource = async <TData = any>( // Añadido genérico para la respuesta
+  const fetchHttpResource = async <TData = unknown>(
     options: IHttpResourceOption,
     showLoading = true,
   ): Promise<IHttpResponse<TData>> => {
@@ -199,8 +199,8 @@ export function useFetchHttp() {
     return handleRequest(axiosInstance, axiosConfig, showLoading);
   };
 
-  const handleRequest = async <TData = any>( // Añadido genérico para la respuesta
-    axiosInstance: AxiosInstance, // Corregido el tipo
+  const handleRequest = async <TData = unknown>(
+    axiosInstance: AxiosInstance,
     axiosConfig: AxiosRequestConfig,
     showLoading: boolean,
   ): Promise<IHttpResponse<TData>> => {

@@ -3,61 +3,67 @@ import { ref, computed } from 'vue';
 import { api } from '@/boot/axios';
 import { usePermissionsStore } from './permissions';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
+import type { IUser } from '@/interfaces/IUser';
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null);
-  const token = ref(localStorage.getItem('token'));
+  const user = ref<IUser | null>(null);
+  const token = ref<string | null>(localStorage.getItem('token'));
 
-  // Acción: Iniciar Sesión
-  const login = async (email: string, password: string) => {
-    try {
-      // 1. Petición directa (Sin CSRF)
-      console.log('Credenciales: ', email, password);
-      const response = await api.post('/login', { email, password });
-      // 2. Capturar datos (Ajustado a tu ResponseHelper: data.data.token)
-      const { token: newToken, user: userData } = response.data.data;
+  const isAuthenticated = computed(() => !!token.value && !!user.value);
 
-      // 3. Guardar estado
-      token.value = newToken;
-      user.value = userData;
-      localStorage.setItem('token', newToken);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const response = await api.post('/login', { email, password });
+    const { token: newToken, user: userData } = response.data.data;
 
-      // 4. Inyectar token a Axios para siguientes peticiones
-      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    token.value = newToken;
+    user.value = userData;
+    localStorage.setItem('token', newToken);
+    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-      return true;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    return true;
   };
 
   async function fetchUser() {
-    // Para obtener la información del usuario logueado, usar 'api' (con /api/v1)
     try {
       const { data } = await api.get('/user');
-      user.value = data;
+      user.value = data.data ?? data;
     } catch {
       user.value = null;
+      token.value = null;
     }
   }
 
-  // Acción: Cerrar Sesión
-  const logout = async () => {
+  const logout = async (router?: { push: (path: string) => void }) => {
     try {
       await api.post('/logout');
-    } catch (_e) {
+    } catch (_e: unknown) {
       // Ignorar error si el token ya expiró
     } finally {
       user.value = null;
       token.value = null;
       localStorage.removeItem('token');
-      // Recargar para limpiar estado completo
-      window.location.reload();
+      api.defaults.headers.common['Authorization'] = '';
+      if (router) {
+        router.push('/login');
+      } else {
+        window.location.href = '/login';
+      }
     }
   };
 
-  return { user, token, login, logout, fetchUser };
+  return {
+    user,
+    token,
+    isAuthenticated,
+    login,
+    logout,
+    fetchUser,
+  };
+}, {
+  persist: {
+    storage: localStorage,
+    pick: ['user', 'token'],
+  },
 });
 
 export const useMenuStore = defineStore('menu', () => {
