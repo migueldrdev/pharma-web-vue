@@ -690,12 +690,22 @@ const changePassword = () => {
 
 const logout = async () => {
   show();
-  await authStore.logout(router);
-  Notify.create({
-    message: 'Sesión cerrada correctamente',
-    type: 'positive',
-    position: 'top-right',
-  });
+  try {
+    await authStore.logout(router);
+    Notify.create({
+      message: 'Sesión cerrada correctamente',
+      type: 'positive',
+      position: 'top-right',
+    });
+  } catch {
+    Notify.create({
+      message: 'Error al cerrar sesión',
+      type: 'negative',
+      position: 'top-right',
+    });
+  } finally {
+    hide();
+  }
 };
 
 // Lifecycle

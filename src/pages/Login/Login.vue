@@ -54,7 +54,7 @@ import { useLogin } from './composables/useLogin';
 defineOptions({ name: 'LoginPage' });
 
 const { loading, handleLogin } = useLogin();
-const formRef = ref<InstanceType<typeof LoginForm> | null>(null);
+const formRef = ref<{ setLoading: (val: boolean) => void } | null>(null);
 
 const features = [
   { icon: 'inventory_2', label: 'Inventario' },
@@ -72,7 +72,7 @@ async function onSubmit(email: string, password: string) {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, $primary 0%, darken($primary, 12%) 100%);
+  background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: -12%) 100%);
 }
 
 .login-card {
