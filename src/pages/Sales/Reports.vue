@@ -54,7 +54,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
-import { resources } from './api-resource/ApiResource';
+import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp } from '@composables/useFetchHttp';
 
 interface Sale { id: number; sale_date: string; total: number; customer_name: string }
@@ -86,7 +86,7 @@ const monthlyCount = computed(() => sales.value.length);
 onMounted(async () => {
   loading.value = true;
   try {
-    const response = await fetchHttpResource<{ data: Sale[] }>(resources.allSales());
+    const response = await fetchHttpResource<{ data: Sale[] }>(resources.allSales);
     sales.value = Array.isArray(response.data) ? response.data as Sale[] : (response.data as any)?.data || [];
   } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar datos' });

@@ -89,7 +89,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppDataTable from '@components/shared/AppDataTable.vue';
-import { resources } from './api-resource/ApiResource';
+import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp } from '@composables/useFetchHttp';
 
 const { fetchHttpResource } = useFetchHttp();
@@ -154,7 +154,7 @@ function formatDate(date: string | null) {
 async function loadSales() {
   loading.value = true;
   try {
-    const response = await fetchHttpResource<{ data: Sale[] }>(resources.allSales());
+    const response = await fetchHttpResource<{ data: Sale[] }>(resources.allSales);
     if (response.success && Array.isArray(response.data)) {
       sales.value = Array.isArray(response.data)
         ? response.data
@@ -178,7 +178,7 @@ function onRowClick(row: { id: number } & Record<string, unknown>) {
 async function viewSale(row: { id: number } & Record<string, unknown>) {
   loading.value = true;
   try {
-    const response = await fetchHttpResource<Sale>(resources.showSale(row.id));
+    const response = await fetchHttpResource<Sale>({ ...resources.showSale, paramsRoute: [String(row.id)] });
     if (response.success) {
       selectedSale.value = response.data;
     } else {

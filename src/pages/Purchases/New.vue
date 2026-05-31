@@ -61,7 +61,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
-import { resources } from './api-resource/ApiResource';
+import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp, IHttpResourceOption } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
 import type { IComboItem } from '@interfaces/IComboItem';
@@ -123,7 +123,7 @@ async function submit() {
   submitting.value = true;
   try {
     const response = await fetchHttpResource({
-      ...resources.createPurchase(),
+      ...resources.createPurchase,
       data: {
         purchase_date: new Date().toISOString().split('T')[0],
         total: cartTotal.value,

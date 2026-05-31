@@ -271,7 +271,7 @@ import { useQuasar } from 'quasar';
 import ProductDialog from './components/Form.vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
-import { resources } from './api-resource/ApiResource';
+import { resources } from '@api-resources/GeneralApiResource';
 import { Product } from './interface/ProductInterfaces';
 import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
@@ -450,7 +450,7 @@ const loadProducts = async () => {
     loading.value = true;
 
     const response: IHttpResponse<ProductData> = await fetchHttpResource<ProductData>(
-      resources.allProduct(),
+      resources.allProducts,
       true,
     );
 
@@ -555,7 +555,7 @@ const handleDeleteConfirm = async () => {
 
 const deleteProduct = async (id: number) => {
   try {
-    await fetchHttpResource(resources.deleteProduct(id));
+    await fetchHttpResource({ ...resources.deleteProduct, paramsRoute: [String(id)] });
     $q.notify({ type: 'positive', message: 'Producto eliminado correctamente' });
     await loadProducts();
   } catch (_error) {
@@ -566,7 +566,7 @@ const deleteProduct = async (id: number) => {
 const deleteMultipleProducts = async () => {
   try {
     for (const product of selectedProducts.value) {
-      await fetchHttpResource(resources.deleteProduct(product.id));
+      await fetchHttpResource({ ...resources.deleteProduct, paramsRoute: [String(product.id)] });
     }
     selectedProducts.value = [];
     $q.notify({ type: 'positive', message: 'Productos eliminados correctamente' });

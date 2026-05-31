@@ -117,8 +117,8 @@ const resources: Record<KeyResource, IHttpResourceOption> = {
     method: HttpMethods.Post,
   },
   updateProduct: {
-    path: '/product', // El ID se añade vía paramsRoute
-    method: HttpMethods.Post, // Usas POST con _method=PUT para FormData
+    path: '/product',
+    method: HttpMethods.Put,
   },
   deleteProduct: {
     path: '/product', // El ID se añade vía paramsRoute

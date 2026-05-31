@@ -45,7 +45,7 @@
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
-import { resources } from './api-resource/ApiResource';
+import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp } from '@composables/useFetchHttp';
 
 const { fetchHttpResource } = useFetchHttp();
@@ -68,7 +68,7 @@ const columns = [
 async function loadPurchases() {
   loading.value = true;
   try {
-    const res = await fetchHttpResource(resources.allPurchases());
+    const res = await fetchHttpResource(resources.allPurchases);
     purchases.value = Array.isArray(res.data) ? res.data as Purchase[] : (res.data as unknown as { data: Purchase[] })?.data || [];
   } catch { $q.notify({ type: 'negative', message: 'Error al cargar compras' }); }
   finally { loading.value = false; }
