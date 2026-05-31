@@ -7,12 +7,12 @@ const props = defineProps<{
   title: string;
   value: number | string;
   icon: string;
-  trend?: 'up' | 'down' | 'neutral';
-  trendValue?: string;
-  color?: string;
-  prefix?: string;
-  suffix?: string;
-  loading?: boolean;
+  trend?: 'up' | 'down' | 'neutral' | undefined;
+  trendValue?: string | undefined;
+  color?: string | undefined;
+  prefix?: string | undefined;
+  suffix?: string | undefined;
+  loading?: boolean | undefined;
 }>();
 
 const colorClass = computed(() => props.color || 'primary');
