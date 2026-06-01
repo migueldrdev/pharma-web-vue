@@ -2,260 +2,88 @@
   <q-page class="q-pa-md">
     <AppPageHeader title="Productos" subtitle="Gestión de inventario farmacéutico">
       <template #actions>
-        <q-btn
-          v-if="hasPermission('products.create')"
-          color="primary"
-          icon="add"
-          label="Nuevo Producto"
-          @click="openCreateDialog"
-          unelevated
-        />
-        <q-btn
-          v-if="selectedProducts.length > 0 && hasPermission('products.delete')"
-          color="negative"
-          icon="delete"
-          :label="`Eliminar (${selectedProducts.length})`"
-          @click="confirmMultipleDelete"
-          outline
-        />
-        <q-btn icon="refresh" @click="loadProducts" flat round color="grey">
+        <q-btn color="primary" icon="add" label="Nuevo" @click="openCreate" unelevated />
+        <q-btn v-if="selectedProducts.length" color="negative" icon="delete" :label="`Eliminar (${selectedProducts.length})`" @click="confirmDeleteMultiple" outline />
+        <q-btn icon="refresh" flat round @click="loadProducts" :loading="loading">
           <q-tooltip>Actualizar</q-tooltip>
         </q-btn>
       </template>
     </AppPageHeader>
 
-    <!-- Filtros y búsqueda -->
-    <q-card flat class="q-mb-md">
-      <q-card-section class="q-pa-md">
-        <div class="row q-gutter-md items-end">
-          <div class="col-md-3 col-sm-6 col-xs-12">
-            <q-input
-              v-model="filters.search"
-              label="Buscar productos"
-              outlined
-              dense
-              clearable
-              debounce="500"
-              @update:model-value="loadProducts"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
+    <ProductFilters
+      v-model:search="filters.search"
+      v-model:category-id="filters.category_id"
+      v-model:lab-id="filters.lab_id"
+      v-model:stock-status="filters.stock_status"
+      :category-options="categoryOptions"
+      :lab-options="labOptions"
+      @changed="onFilterChange"
+    />
 
-          <div class="col-md-2 col-sm-6 col-xs-12">
-            <q-select
-              v-model="filters.category_id"
-              :options="categoryOptions"
-              label="Categoría"
-              outlined
-              dense
-              clearable
-              emit-value
-              map-options
-              @update:model-value="loadProducts"
-            />
-          </div>
-
-          <div class="col-md-2 col-sm-6 col-xs-12">
-            <q-select
-              v-model="filters.lab_id"
-              :options="labOptions"
-              label="Laboratorio"
-              outlined
-              dense
-              clearable
-              emit-value
-              map-options
-              @update:model-value="loadProducts"
-            />
-          </div>
-
-          <div class="col-md-2 col-sm-6 col-xs-12">
-            <q-select
-              v-model="filters.stock_status"
-              :options="stockStatusOptions"
-              label="Estado Stock"
-              outlined
-              dense
-              clearable
-              emit-value
-              map-options
-              @update:model-value="loadProducts"
-            />
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- Tabla de productos -->
-    <q-card flat>
-      <!--
-
-      flat bordered
-      title="Treats"
-      :rows="rows"
-      :columns="columns"
-      row-key="index"
-      virtual-scroll
-      v-model:pagination="pagination"
-      :rows-per-page-options="[0]"
-
-      :rows-per-page-options="[10, 25, 50, 100]"
-      -->
+    <q-card flat bordered>
       <q-table
-        flat
-        bordered
         :rows="products"
         :columns="columns"
         row-key="id"
-        :loading="loading"
-        @request="onRequest"
-        selection="multiple"
-        v-model:selected="selectedProducts"
-        class="product-table"
-        virtual-scroll
         v-model:pagination="pagination"
-        :rows-per-page-options="[0]"
+        :loading="loading"
+        :rows-per-page-options="[10, 25, 50]"
+        v-model:selected="selectedProducts"
+        selection="multiple"
+        flat
+        @request="onTableRequest"
       >
-        <!-- Slot para el estado del stock -->
-        <template v-slot:body-cell-stock="props">
-          <q-td :props="props">
-            <q-chip
-              :color="getStockColor(props.value)"
-              text-color="white"
-              size="sm"
-              :icon="getStockIcon(props.value)"
-            >
-              {{ props.value }}
+        <template #body-cell-stock="{ value }">
+          <q-td>
+            <q-chip :color="getStockColor(value)" text-color="white" size="sm" dense>
+              {{ value }}
             </q-chip>
           </q-td>
         </template>
-
-        <!-- Slot para el precio -->
-        <template v-slot:body-cell-price="props">
-          <q-td :props="props">
-            <span class="text-weight-medium text-green-8">
-              S/ {{ parseFloat(props.value).toFixed(2) }}
-            </span>
+        <template #body-cell-price="{ value }">
+          <q-td>
+            <span class="text-weight-medium text-positive">S/ {{ Number(value).toFixed(2) }}</span>
           </q-td>
         </template>
-
-        <!-- Slot para la imagen -->
-        <template v-slot:body-cell-image="props">
-          <q-td :props="props">
-            <q-avatar
-              v-if="props.row.image"
-              size="40px"
-              rounded
-              class="cursor-pointer"
-              @click="showImageDialog(props.row.image)"
-            >
-              <img :src="props.row.image" :alt="props.row.name" />
+        <template #body-cell-image="{ row }">
+          <q-td>
+            <q-avatar v-if="row.image" size="36px" rounded class="cursor-pointer" @click="previewImage = row.image; showPreview = true">
+              <img :src="row.image" :alt="row.name" />
             </q-avatar>
-            <q-icon v-else name="image_not_supported" size="24px" color="grey-5" />
+            <q-icon v-else name="image_not_supported" size="20px" color="grey-5" />
           </q-td>
         </template>
-
-        <!-- Slot para el código -->
-        <template v-slot:body-cell-code="props">
-          <q-td :props="props">
-            <q-chip
-              outline
-              color="primary"
-              size="sm"
-              clickable
-              @click="copyToClipboard(props.value)"
-            >
-              {{ props.value }}
-              <q-tooltip>Click para copiar</q-tooltip>
-            </q-chip>
+        <template #body-cell-actions="{ row }">
+          <q-td class="text-center">
+            <q-btn icon="visibility" size="sm" flat round color="info" @click="viewDetail(row)">
+              <q-tooltip>Ver</q-tooltip>
+            </q-btn>
+            <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(row)">
+              <q-tooltip>Editar</q-tooltip>
+            </q-btn>
+            <q-btn icon="delete" size="sm" flat round color="negative" @click="confirmDelete(row)">
+              <q-tooltip>Eliminar</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
-
-        <!-- Slot para las acciones -->
-        <template v-slot:body-cell-actions="props">
-          <q-td :props="props">
-            <div class="row justify-center q-gutter-xs">
-              <q-btn
-                v-if="hasPermission('products.view')"
-                icon="visibility"
-                size="sm"
-                flat
-                round
-                color="info"
-                @click="viewProduct(props.row)"
-              >
-                <q-tooltip>Ver detalles</q-tooltip>
-              </q-btn>
-
-              <q-btn
-                v-if="hasPermission('products.edit')"
-                icon="edit"
-                size="sm"
-                flat
-                round
-                color="warning"
-                @click="editProduct(props.row)"
-              >
-                <q-tooltip>Editar</q-tooltip>
-              </q-btn>
-
-              <q-btn
-                v-if="hasPermission('products.delete')"
-                icon="delete"
-                size="sm"
-                flat
-                round
-                color="negative"
-                @click="confirmDelete(props.row)"
-              >
-                <q-tooltip>Eliminar</q-tooltip>
-              </q-btn>
-            </div>
-          </q-td>
-        </template>
-
-        <!-- Slot cuando no hay datos -->
-        <template v-slot:no-data="{ message }">
-          <div class="full-width row flex-center text-grey-6 q-gutter-sm">
-            <q-icon size="2em" name="inventory_2" />
-            <span class="text-subtitle1">
-              {{ message || 'No hay productos disponibles' }}
-            </span>
+        <template #no-data>
+          <div class="text-center q-py-lg text-grey-6">
+            <q-icon name="inventory_2" size="48px" />
+            <div class="text-subtitle1 q-mt-sm">No hay productos disponibles</div>
           </div>
         </template>
       </q-table>
     </q-card>
 
-    <!-- Dialog para crear/editar producto -->
-    <ProductDialog
-      v-model="showDialog"
-      :product="selectedProduct"
-      :is-edit="isEdit"
-      @saved="onProductSaved"
-    />
+    <ProductForm v-model="showDialog" :product="currentProduct" :is-edit="isEdit" @saved="onSaved" />
 
-    <!-- Confirmación de eliminación -->
-    <AppConfirmDialog
-      v-model="showDeleteConfirm"
-      :title="deleteTarget === 'multiple' ? 'Eliminar productos' : 'Eliminar producto'"
-      :message="deleteMessage"
-      confirm-label="Eliminar"
-      color="negative"
-      @confirm="handleDeleteConfirm"
-    />
+    <AppConfirmDialog v-model="showDeleteConfirm" title="Eliminar producto"
+      :message="deleteMessage" confirm-label="Eliminar" color="negative" @confirm="onDeleteConfirm" />
 
-    <!-- Dialog para ver imagen -->
-    <q-dialog v-model="showImagePreview">
+    <q-dialog v-model="showPreview">
       <q-card>
         <q-card-section class="text-center">
-          <img
-            :src="previewImage"
-            class="img-responsive"
-            style="max-height: 400px; max-width: 100%"
-          />
+          <img :src="previewImage" style="max-height: 400px; max-width: 100%" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cerrar" color="primary" v-close-popup />
@@ -267,415 +95,94 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useQuasar } from 'quasar';
-import ProductDialog from './components/Form.vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
-import { resources } from '@api-resources/GeneralApiResource';
-import { Product } from './interface/ProductInterfaces';
-import { useFetchHttp, IHttpResponse } from '@composables/useFetchHttp';
+import ProductFilters from './components/ProductFilters.vue';
+import ProductForm from './components/ProductForm.vue';
+import { useProducts } from './composables/useProducts';
 import { useCombo } from '@composables/useCombo';
-import { IComboItem } from '@interfaces/IComboItem';
 import { useComboStore } from '@stores/combos/comboStore';
+import type { IProduct } from './interfaces/IProduct';
+import type { IComboItem } from '@interfaces/IComboItem';
 
-interface TableColumn {
-  name: string;
-  label: string;
-  field: string | ((row: any) => any);
-  required?: boolean;
-  align?: 'left' | 'right' | 'center';
-  sortable?: boolean;
-  format?: (val: any) => string;
-  style?: string;
-  headerStyle?: string;
-}
+defineOptions({ name: 'ProductsPage' });
 
-// Define una interfaz para la estructura de los datos que esperas de 'observations'
-interface ProductData {
-  header: Array<{ name: string; label: string; field: string; visible: boolean }>;
-  data: Array<any>; // O tipar esto más específicamente si conoces la estructura de cada observación
-}
+const {
+  products, loading, selectedProducts, filters, pagination,
+  loadProducts, deleteProduct, deleteMultiple,
+} = useProducts();
 
-// Composables
-// Instancia el store de Pinia
-const comboStore = useComboStore();
-// Instancia el composable para cargar datos de la API
 const { loadComboData } = useCombo();
-const { fetchHttpResource } = useFetchHttp();
-const $q = useQuasar();
+const comboStore = useComboStore();
 
-// Estados reactivos
-// const products = ref<Product[]>([]);
-const products = ref<any>([]);
-const selectedProducts = ref<Product[]>([]);
-const selectedProduct = ref<Product | null>(null);
-const loading = ref(false);
+const categoryOptions = ref<IComboItem[]>(comboStore.getComboData('categoriesCombo'));
+const labOptions = ref<IComboItem[]>(comboStore.getComboData('labsCombo'));
+
 const showDialog = ref(false);
 const isEdit = ref(false);
-const showImagePreview = ref(false);
-const previewImage = ref('');
+const currentProduct = ref<IProduct | null>(null);
 const showDeleteConfirm = ref(false);
-const deleteTarget = ref<Product | 'multiple' | null>(null);
+const deleteTarget = ref<IProduct | null>(null);
+const showPreview = ref(false);
+const previewImage = ref('');
 
-// Filtros
-const filters = ref({
-  search: '',
-  category_id: null,
-  lab_id: null,
-  stock_status: null,
-});
-
-// Paginación
-const pagination = ref({
-  sortBy: 'name',
-  descending: false,
-  page: 1,
-  rowsPerPage: 25,
-  rowsNumber: 0,
-});
-
-// Opciones para selects
-const categoryOptions = ref<IComboItem[]>([]);
-const labOptions = ref<IComboItem[]>([]);
-const typeOptions = ref<IComboItem[]>([]);
-const presentationOptions = ref<IComboItem[]>([]);
-const storageOptions = ref<IComboItem[]>([]);
-const statusOptions = ref<IComboItem[]>([]);
-
-const stockStatusOptions = ref<IComboItem[]>([
-  { label: 'En Stock', value: 'in_stock' },
-  { label: 'Stock Bajo', value: 'low_stock' },
-  { label: 'Sin Stock', value: 'out_of_stock' },
-]);
-
-// Columnas de la tabla
-const columns: TableColumn[] = [
-  {
-    name: 'image',
-    label: '',
-    field: 'image',
-    align: 'center',
-    style: 'width: 60px',
-  },
-  {
-    name: 'name',
-    label: 'Producto',
-    field: 'name',
-    required: true,
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'code',
-    label: 'Código',
-    field: 'code',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'category_name',
-    label: 'Categoría',
-    field: 'category_name',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'lab_name',
-    label: 'Laboratorio',
-    field: 'lab_name',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'pharmaceutical_form',
-    label: 'Forma Farmacéutica',
-    field: 'pharmaceutical_form',
-    align: 'left',
-  },
-  {
-    name: 'stock',
-    label: 'Stock',
-    field: 'stock',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'price',
-    label: 'Precio',
-    field: 'price',
-    align: 'right',
-    sortable: true,
-  },
-  {
-    name: 'actions',
-    label: 'Acciones',
-    field: 'actions',
-    align: 'center',
-    style: 'width: 120px',
-  },
+const columns = [
+  { name: 'image', label: '', field: 'image', align: 'center' as const, style: 'width: 50px' },
+  { name: 'name', label: 'Producto', field: 'name', align: 'left' as const, sortable: true },
+  { name: 'code', label: 'Código', field: 'code', align: 'center' as const, sortable: true },
+  { name: 'category_name', label: 'Categoría', field: 'category_name', align: 'left' as const },
+  { name: 'lab_name', label: 'Laboratorio', field: 'lab_name', align: 'left' as const },
+  { name: 'stock', label: 'Stock', field: 'stock', align: 'center' as const, sortable: true },
+  { name: 'price', label: 'Precio', field: 'price', align: 'right' as const, sortable: true },
+  { name: 'actions', label: 'Acciones', field: 'actions', align: 'center' as const, style: 'width: 110px' },
 ];
 
-// Computed
-const userPermissions = computed(() => {
-  // Simular permisos del usuario actual
-  return ['products.view', 'products.create', 'products.edit', 'products.delete'];
-});
+const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? ''}"?`);
 
-// Métodos
-const hasPermission = (permission: string): boolean => {
-  return userPermissions.value.includes(permission);
-};
+function onFilterChange() {
+  pagination.value.page = 1;
+  loadProducts();
+}
 
-const deleteMessage = computed(() => {
-  if (deleteTarget.value === 'multiple') {
-    return `¿Eliminar ${selectedProducts.value.length} productos seleccionados?`;
-  }
-  if (deleteTarget.value && typeof deleteTarget.value === 'object') {
-    return `¿Eliminar el producto "${(deleteTarget.value as Product).name}"?`;
-  }
-  return '¿Eliminar?';
-});
+function onTableRequest(props: { pagination: { page: number; rowsPerPage: number; sortBy: string; descending: boolean } }) {
+  pagination.value.page = props.pagination.page;
+  pagination.value.rowsPerPage = props.pagination.rowsPerPage;
+  pagination.value.sortBy = props.pagination.sortBy;
+  pagination.value.descending = props.pagination.descending;
+  loadProducts();
+}
 
-// Función para cargar todos los combos
-const getAllCombos = () => {
-  categoryOptions.value = comboStore.getComboData('categoriesCombo');
-  labOptions.value = comboStore.getComboData('labsCombo');
-  typeOptions.value = comboStore.getComboData('productTypesCombo');
-  presentationOptions.value = comboStore.getComboData('productPresentationsCombo');
-  storageOptions.value = comboStore.getComboData('storageConditionsCombo');
-};
+function openCreate() { currentProduct.value = null; isEdit.value = false; showDialog.value = true; }
+function openEdit(product: IProduct) { currentProduct.value = product; isEdit.value = true; showDialog.value = true; }
+function onSaved() { showDialog.value = false; currentProduct.value = null; loadProducts(); }
 
-const loadProducts = async () => {
-  try {
-    loading.value = true;
+function confirmDelete(product: IProduct) { deleteTarget.value = product; showDeleteConfirm.value = true; }
+function confirmDeleteMultiple() { deleteTarget.value = null; showDeleteConfirm.value = true; }
 
-    const response: IHttpResponse<ProductData> = await fetchHttpResource<ProductData>(
-      resources.allProducts,
-      true,
-    );
-
-    console.log('response');
-    console.log(response);
-
-    if (!response.success) {
-      throw new Error(response.message || 'Error desconocido al cargar datos.');
-    }
-
-    // columns.value = response.data.header.filter((e: any) => e.visible == true);
-    products.value = response.data;
-    // rows.value = response.data.data;
-  } catch (error: any) {
-    if (error instanceof Error) {
-      console.error('Error al cargar datos:', error.message);
-      $q.notify({
-        type: 'negative',
-        message: error.message || 'Error desconocido.',
-      });
-    } else {
-      console.error('Error desconocido:', error);
-      $q.notify({
-        type: 'negative',
-        message: 'Error inesperado.',
-      });
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const onRequest = async (props: any) => {
-  const { page, rowsPerPage, sortBy, descending } = props.pagination;
-  pagination.value.page = page;
-  pagination.value.rowsPerPage = rowsPerPage;
-  pagination.value.sortBy = sortBy;
-  pagination.value.descending = descending;
-
-  await loadProducts();
-};
-
-const openCreateDialog = () => {
-  selectedProduct.value = null;
-  isEdit.value = false;
-  showDialog.value = true;
-};
-
-const editProduct = (product: Product) => {
-  selectedProduct.value = { ...product };
-  isEdit.value = true;
-  showDialog.value = true;
-};
-
-const viewProduct = (product: Product) => {
-  $q.dialog({
-    title: 'Detalles del Producto',
-    message: `
-      <div class="q-pa-md">
-        <div class="row q-gutter-md">
-          <div class="col-12">
-            <strong>Nombre:</strong> ${product.name}
-          </div>
-          <div class="col-6">
-            <strong>Código:</strong> ${product.code}
-          </div>
-          <div class="col-6">
-            <strong>Stock:</strong> ${product.stock}
-          </div>
-          <div class="col-6">
-            <strong>Precio:</strong> S/ ${product.price}
-          </div>
-          <div class="col-6">
-            <strong>Forma:</strong> ${product.pharmaceutical_form}
-          </div>
-        </div>
-      </div>
-    `,
-    html: true,
-    ok: 'Cerrar',
-  });
-};
-
-const confirmDelete = (product: Product) => {
-  deleteTarget.value = product;
-  showDeleteConfirm.value = true;
-};
-
-const confirmMultipleDelete = () => {
-  deleteTarget.value = 'multiple';
-  showDeleteConfirm.value = true;
-};
-
-const handleDeleteConfirm = async () => {
-  if (deleteTarget.value === 'multiple') {
-    await deleteMultipleProducts();
-  } else if (deleteTarget.value && typeof deleteTarget.value === 'object') {
-    await deleteProduct(deleteTarget.value.id);
-  }
+async function onDeleteConfirm() {
+  if (deleteTarget.value) await deleteProduct(deleteTarget.value.id);
+  else await deleteMultiple();
   showDeleteConfirm.value = false;
-};
+}
 
-const deleteProduct = async (id: number) => {
-  try {
-    await fetchHttpResource({ ...resources.deleteProduct, paramsRoute: [String(id)] });
-    $q.notify({ type: 'positive', message: 'Producto eliminado correctamente' });
-    await loadProducts();
-  } catch (_error) {
-    $q.notify({ type: 'negative', message: 'Error al eliminar producto' });
-  }
-};
+function viewDetail(p: IProduct) {
+  previewImage.value = p.image ?? '';
+  if (previewImage.value) showPreview.value = true;
+}
 
-const deleteMultipleProducts = async () => {
-  try {
-    for (const product of selectedProducts.value) {
-      await fetchHttpResource({ ...resources.deleteProduct, paramsRoute: [String(product.id)] });
-    }
-    selectedProducts.value = [];
-    $q.notify({ type: 'positive', message: 'Productos eliminados correctamente' });
-    await loadProducts();
-  } catch (_error) {
-    $q.notify({ type: 'negative', message: 'Error al eliminar productos' });
-  }
-};
-
-const onProductSaved = async () => {
-  showDialog.value = false;
-  selectedProduct.value = null;
-  await loadProducts();
-};
-
-const showImageDialog = (imageUrl: string) => {
-  previewImage.value = imageUrl;
-  showImagePreview.value = true;
-};
-
-const copyToClipboard = (text: string) => {
-  void navigator.clipboard.writeText(text);
-  $q.notify({
-    type: 'positive',
-    message: 'Código copiado al portapapeles',
-    timeout: 1000,
-  });
-};
-
-const getStockColor = (stock: number): string => {
-  if (stock <= 0) return 'negative';
-  if (stock <= 10) return 'warning';
+function getStockColor(v: number): string {
+  if (v <= 0) return 'negative';
+  if (v <= 10) return 'warning';
   return 'positive';
-};
+}
 
-const getStockIcon = (stock: number): string => {
-  if (stock <= 0) return 'error';
-  if (stock <= 10) return 'warning';
-  return 'check_circle';
-};
-
-// Lifecycle
 onMounted(async () => {
-  console.log('Productos montados');
-  loading.value = true;
   await Promise.all([
     loadComboData('categoriesCombo'),
     loadComboData('labsCombo'),
-    loadComboData('productTypesCombo'),
-    loadComboData('productPresentationsCombo'),
-    loadComboData('storageConditionsCombo'),
   ]);
-  getAllCombos();
+  categoryOptions.value = comboStore.getComboData('categoriesCombo');
+  labOptions.value = comboStore.getComboData('labsCombo');
   await loadProducts();
 });
 </script>
-
-<style lang="scss" scoped>
-.product-table {
-  /* height or max-height is important */
-  height: calc(100vh - 300px);
-
-  .q-table__top,
-  .q-table__bottom,
-  .thead tr:first-child th {
-    padding: 12px 16px;
-    background-color: #00b4ff;
-  }
-
-  .thead tr th {
-    position: sticky;
-    z-index: 1;
-  }
-
-  /* this will be the loading indicator */
-  .thead tr:last-child th {
-    top: 48px;
-  }
-  /* height of all previous header rows */
-
-  .thead tr:first-child th {
-    top: 0;
-  }
-
-  /* prevent scrolling behind sticky top row on focus */
-  .tbody {
-    scroll-margin-top: 48px;
-  }
-  /* height of all previous header rows */
-
-  // .q-table__top,
-  // .q-table__bottom {
-  //   padding: 12px 16px;
-  // }
-
-  // .q-table tbody td {
-  //   padding: 8px 16px;
-  // }
-
-  // .q-table thead th {
-  //   padding: 12px 16px;
-  //   font-weight: 600;
-  //   color: #424242;
-  // }
-}
-
-.q-card {
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24);
-}
-</style>
