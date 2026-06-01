@@ -1,12 +1,25 @@
 import { ref, computed } from 'vue';
 import { Notify } from 'quasar';
 import { useFetchHttp } from '@composables/useFetchHttp';
-import { resources } from '@api-resources/GeneralApiResource';
 import type {
   IDashboardKPI,
   ISaleRecord,
   IProductRecord,
 } from '../interfaces/IDashboard';
+
+interface DashboardData {
+  daily_sales_total: number;
+  daily_transactions: number;
+  monthly_sales_total: number;
+  monthly_transactions: number;
+  total_products: number;
+  low_stock_count: number;
+  expiring_soon_count: number;
+  sales_trend: number[];
+  top_categories: { name: string; y: number }[];
+  recent_sales: { id: number; client_name: string; total: number; sale_date: string; status: string }[];
+  low_stock_products: { id: number; name: string; code: string; stock: number; min_stock: number; category_name: string }[];
+}
 
 export function useDashboard() {
   const { fetchHttpResource } = useFetchHttp();
@@ -91,19 +104,33 @@ export function useDashboard() {
   async function refreshData() {
     loading.value = true;
     try {
-      const [salesRes, productsRes] = await Promise.all([
-        fetchHttpResource<{ data: ISaleRecord[] }>(resources.allSales),
-        fetchHttpResource<{ data: IProductRecord[] }>(resources.allProducts),
-      ]);
+      const dashboardRes = await fetchHttpResource<DashboardData>({
+        path: '/dashboard',
+        method: 'get' as never,
+      });
 
-      if (salesRes.success) {
-        const salesData = salesRes.data;
-        sales.value = Array.isArray(salesData) ? salesData : (salesData as unknown as { data: ISaleRecord[] })?.data || [];
-      }
+      if (dashboardRes.success && dashboardRes.data) {
+        const d = dashboardRes.data as DashboardData;
+        // Mapear KPIs del backend al formato del frontend
+        sales.value = (d.recent_sales || []).map((s) => ({
+          id: s.id,
+          sale_date: s.sale_date,
+          total: s.total,
+          customer_name: s.client_name,
+          client_name: s.client_name,
+          details: [],
+          active: true,
+        })) as unknown as ISaleRecord[];
 
-      if (productsRes.success) {
-        const productsData = productsRes.data;
-        products.value = Array.isArray(productsData) ? productsData : (productsData as unknown as { data: IProductRecord[] })?.data || [];
+        // Usar low_stock_products para products
+        if ((d as any).low_stock_products) {
+          products.value = (d as any).low_stock_products.map((p: any) => ({
+            id: p.id, name: p.name, code: p.code || '-',
+            stock: p.stock, min_stock: p.min_stock || 10,
+            category_name: p.category_name || '-',
+            expiration_date: null,
+          })) as IProductRecord[];
+        }
       }
 
       firstLoad.value = false;
