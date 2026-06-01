@@ -2,7 +2,6 @@
 import type { ILayoutUser } from '../interfaces/ILayout';
 import { defaultUser } from '../data/menuItems';
 import { useRouter } from 'vue-router';
-import { log } from 'console';
 
 defineOptions({ name: 'SidebarProfile' });
 

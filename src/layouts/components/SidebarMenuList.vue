@@ -32,7 +32,7 @@ function onItemClick(route?: string) {
 </script>
 
 <template>
-  <q-list>
+  <q-list :class="props.mini ? 'q-pa-xs' : 'q-pa-md'">
     <template v-for="item in items" :key="item.id">
       <q-expansion-item
         v-if="item.children?.length"
@@ -40,7 +40,9 @@ function onItemClick(route?: string) {
         :icon="item.icon"
         :label="mini ? '' : item.label"
         :default-opened="item.defaultOpen"
-        :class="{ 'text-primary': item.children.some((c) => c.route === activeRoute) }"
+        :class="{
+          'text-primary rounded-borders': item.children.some((c) => c.route === activeRoute),
+        }"
         @after-show="onExpand"
       >
         <template v-if="mini" #header>

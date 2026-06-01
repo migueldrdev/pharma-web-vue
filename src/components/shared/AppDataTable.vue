@@ -28,7 +28,7 @@ const pagination = defineModel('pagination', {
     flat
     bordered
     separator="horizontal"
-    class="q-pa-sm bg-white rounded-borders"
+    class="q-pa-sm rounded-borders"
     :rows-per-page-options="[10, 15, 25, 50]"
   >
     <template #top>

@@ -42,11 +42,11 @@ function onNavigate(route: string) {
     :mini="Screen.lt.sm ? false : mini"
   >
     <q-scroll-area class="fit">
-      <div class="q-py-md q-mx-md">
+      <div class="q-py-sm">
         <SidebarProfile v-if="user" :user="user" :mini="Screen.lt.sm ? false : mini" />
       </div>
 
-      <q-separator class="q-mx-md" />
+      <q-separator class="q-mx-md q-my-sm" />
 
       <SidebarMenuList
         :items="menuItems"

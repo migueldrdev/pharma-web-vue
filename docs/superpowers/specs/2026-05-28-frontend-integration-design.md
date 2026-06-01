@@ -218,7 +218,6 @@ $warning: #f2c037;
 - **Nunca** definir tipos inline en SFC; siempre en `src/interfaces/`
 - **Nunca** hardcodear URLs; usar `VITE_API_BASE_URL` del `.env`
 - **Nunca** usar CSS Grid nativo; usar `q-col`/`q-row` de Quasar
-- **Nunca** usar media queries manuales; usar `Screen` de Quasar
 - **Nunca** mutar estado fuera de Pinia; usar acciones async con try/catch
 - **Nunca** hacer llamadas HTTP directas desde componentes; usar servicios API
 - **Nunca** repetir código de tablas, formularios o diálogos; usar componentes shared a menos que haya una razón específica para no hacerlo
@@ -228,6 +227,6 @@ $warning: #f2c037;
 - **Siempre** usar componentes shared en vez de repetir markup
 - **Siempre** pasar por `src/api/modules/*Service.ts` para llamadas HTTP
 - **Siempre** manejar estados: loading, empty, error, success
-- **Siempre** usar `Notify` para feedback de acciones (éxito, error)
+- **Siempre** usar `$q.notify` para feedback de acciones (éxito, error)
 - **Siempre** escribir código limpio, modular y DRY
 - **Siempre** seguir la paleta de colores unificada (Quasar `$primary` = verde)
