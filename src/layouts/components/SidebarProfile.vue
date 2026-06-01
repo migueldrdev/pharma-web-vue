@@ -1,21 +1,32 @@
 <script setup lang="ts">
 import type { ILayoutUser } from '../interfaces/ILayout';
 import { defaultUser } from '../data/menuItems';
+import { useRouter } from 'vue-router';
+import { log } from 'console';
 
 defineOptions({ name: 'SidebarProfile' });
 
-withDefaults(defineProps<{
-  user?: ILayoutUser;
-  mini?: boolean;
-}>(), {
-  user: () => ({ ...defaultUser }),
-  mini: false,
-});
+withDefaults(
+  defineProps<{
+    user?: ILayoutUser;
+    mini?: boolean;
+  }>(),
+  {
+    user: () => ({ ...defaultUser }),
+    mini: false,
+  },
+);
+
+const router = useRouter();
+
+function navigate() {
+  router.push('/profile');
+}
 </script>
 
 <template>
   <div class="row items-center q-pa-md q-gutter-x-md" :class="{ 'justify-center': mini }">
-    <q-avatar size="48px">
+    <q-avatar class="cursor-pointer" :size="mini ? 'sm' : 'lg'" rounded @click="navigate">
       <img :src="user!.avatar" />
     </q-avatar>
     <div v-if="!mini" class="column" style="line-height: 1.2">

@@ -1,24 +1,32 @@
 <script setup lang="ts">
+import { Screen } from 'quasar';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
 
 defineOptions({ name: 'SidebarMenuList' });
 
-defineProps<{
+const props = defineProps<{
   items: IMenuItem[];
   mini?: boolean;
   activeRoute: string;
 }>();
 
 const emit = defineEmits<{
-  'expand': [];
-  'navigate': [route: string];
+  expand: [];
+  navigate: [route: string];
 }>();
 
-function handleParentClick(item: IMenuItem) {
-  if (item.children?.length) {
+function onExpand() {
+  if (props.mini) {
     emit('expand');
-  } else if (item.route) {
-    emit('navigate', item.route);
+  }
+}
+
+function onItemClick(route?: string) {
+  if (props.mini) {
+    emit('expand');
+  }
+  if (route) {
+    emit('navigate', route);
   }
 }
 </script>
@@ -32,8 +40,8 @@ function handleParentClick(item: IMenuItem) {
         :icon="item.icon"
         :label="mini ? '' : item.label"
         :default-opened="item.defaultOpen"
-        class="menu-expansion"
-        :class="{ active: item.children.some((c) => c.route === activeRoute) }"
+        :class="{ 'text-primary': item.children.some((c) => c.route === activeRoute) }"
+        @after-show="onExpand"
       >
         <template v-if="mini" #header>
           <q-item-section avatar>
@@ -71,7 +79,7 @@ function handleParentClick(item: IMenuItem) {
         :to="item.route"
         class="rounded-borders"
         :class="{ 'text-primary text-weight-medium': activeRoute === item.route }"
-        @click="emit('navigate', item.route ?? '/')"
+        @click="onItemClick(item.route ?? '/')"
       >
         <q-item-section avatar>
           <q-icon :name="item.icon" />

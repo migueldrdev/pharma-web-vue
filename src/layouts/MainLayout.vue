@@ -19,7 +19,7 @@
       @toggle-mini="toggleMini"
     />
 
-    <q-page-container class="bg-grey-1">
+    <q-page-container>
       <div class="q-pa-md q-pb-none" v-if="breadcrumbs.length">
         <q-breadcrumbs>
           <q-breadcrumbs-el
@@ -56,7 +56,7 @@ import { useLoading } from '@composables/useLoading';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import { useMainLayout } from './composables/useMainLayout';
-import { defaultUser, defaultNotifications } from './data/menuItems';
+import { defaultUser } from './data/menuItems';
 
 defineOptions({ name: 'MainLayout' });
 
@@ -86,7 +86,11 @@ async function handleLogout() {
   show();
   try {
     await authStore.logout(router);
-    Notify.create({ message: 'Sesión cerrada correctamente', type: 'positive', position: 'top-right' });
+    Notify.create({
+      message: 'Sesión cerrada correctamente',
+      type: 'positive',
+      position: 'top-right',
+    });
   } catch {
     Notify.create({ message: 'Error al cerrar sesión', type: 'negative', position: 'top-right' });
   } finally {
@@ -94,7 +98,7 @@ async function handleLogout() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
     Dark.set(savedTheme === 'dark');
@@ -110,7 +114,7 @@ onMounted(() => {
     };
   }
 
-  menuStore.loadMenus();
-  permissionsStore.loadPermissions();
+  await menuStore.loadMenus();
+  await permissionsStore.loadPermissions();
 });
 </script>

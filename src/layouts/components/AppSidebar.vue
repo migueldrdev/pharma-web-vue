@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Screen } from 'quasar';
 import SidebarProfile from './SidebarProfile.vue';
 import SidebarMenuList from './SidebarMenuList.vue';
 import SidebarMiniToggle from './SidebarMiniToggle.vue';
@@ -7,7 +8,7 @@ import type { IMenuItem } from '@/interfaces/IMenuItem';
 
 defineOptions({ name: 'AppSidebar' });
 
-const props = defineProps<{
+defineProps<{
   modelValue: boolean;
   mini: boolean;
   user?: ILayoutUser;
@@ -18,10 +19,17 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   'update:mini': [value: boolean];
-  'expand': [];
-  'navigate': [route: string];
+  expand: [];
+  navigate: [route: string];
   'toggle-mini': [];
 }>();
+
+function onNavigate(route: string) {
+  if (Screen.lt.sm) {
+    emit('update:modelValue', false);
+  }
+  emit('navigate', route);
+}
 </script>
 
 <template>
@@ -31,22 +39,29 @@ const emit = defineEmits<{
     show-if-above
     bordered
     :width="280"
-    :mini="mini"
+    :mini="Screen.lt.sm ? false : mini"
   >
     <q-scroll-area class="fit">
-      <SidebarProfile v-if="user" :user="user" :mini="mini" />
+      <div class="q-py-md q-mx-md">
+        <SidebarProfile v-if="user" :user="user" :mini="Screen.lt.sm ? false : mini" />
+      </div>
 
       <q-separator class="q-mx-md" />
 
       <SidebarMenuList
         :items="menuItems"
-        :mini="mini"
+        :mini="Screen.lt.sm ? false : mini"
         :active-route="activeRoute"
         @expand="emit('expand')"
-        @navigate="emit('navigate', $event)"
+        @navigate="onNavigate"
       />
     </q-scroll-area>
 
-    <SidebarMiniToggle :mini="mini" @toggle="emit('toggle-mini')" class="absolute-bottom" />
+    <SidebarMiniToggle
+      v-if="Screen.gt.sm"
+      :mini="mini"
+      @toggle="emit('toggle-mini')"
+      class="absolute-bottom"
+    />
   </q-drawer>
 </template>
