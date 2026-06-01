@@ -1,82 +1,54 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import { usePurchases } from './composables/usePurchases';
+import type { IPurchase } from './interfaces/IPurchase';
+
+defineOptions({ name: 'PurchasesPage' });
+
+const { purchases, loading, filter, pagination, loadPurchases } = usePurchases();
+
+function onTableRequest(props: { pagination: { page: number; rowsPerPage: number } }) {
+  pagination.value.page = props.pagination.page;
+  pagination.value.rowsPerPage = props.pagination.rowsPerPage;
+  loadPurchases();
+}
+
+const columns = [
+  { name: 'id', label: '#', field: 'id', align: 'left' as const },
+  { name: 'purchase_date', label: 'Fecha', field: (row: IPurchase) => row.purchase_date?.slice(0, 10) ?? '-', align: 'left' as const },
+  { name: 'supplier_name', label: 'Proveedor', field: 'supplier_name', align: 'left' as const },
+  { name: 'total', label: 'Total', field: (row: IPurchase) => `S/ ${Number(row.total).toFixed(2)}`, align: 'right' as const },
+];
+
+onMounted(() => { loadPurchases(); });
+</script>
+
 <template>
   <q-page class="q-pa-md">
-    <AppPageHeader title="Compras" subtitle="Historial de compras realizadas">
+    <AppPageHeader title="Compras" subtitle="Historial de compras">
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nueva Compra" :to="{ name: 'new-purchase' }" unelevated />
-        <q-btn icon="refresh" @click="loadPurchases" flat round color="grey"><q-tooltip>Actualizar</q-tooltip></q-btn>
+        <q-btn color="primary" icon="add" label="Nueva Compra" unelevated :to="{ path: '/purchases/new' }" />
+        <q-btn icon="refresh" flat round @click="loadPurchases()" :loading="loading" />
       </template>
     </AppPageHeader>
 
     <q-card flat bordered>
       <q-card-section>
-        <q-input v-model="filter" label="Buscar compras" outlined dense clearable debounce="300" class="q-mb-md">
+        <q-input v-model="filter" label="Buscar por proveedor" outlined dense clearable debounce="400" class="q-mb-md"
+          @update:model-value="pagination.page = 1; loadPurchases()">
           <template #prepend><q-icon name="search" /></template>
         </q-input>
-
-        <q-table
-          :rows="purchases"
-          :columns="columns"
-          :loading="loading"
-          :filter="filter"
-          row-key="id"
-          flat
-          dense
-          :rows-per-page-options="[15, 25, 50]"
-          @row-click="(_, row) => viewPurchase(row)"
-        >
-          <template #body-cell-total="props">
-            <q-td :props="props"><span class="text-green-8">S/ {{ Number(props.value).toFixed(2) }}</span></q-td>
-          </template>
-          <template #body-cell-purchase_date="props">
-            <q-td :props="props">{{ props.value ? new Date(props.value).toLocaleDateString('es-PE') : '-' }}</q-td>
-          </template>
-          <template #body-cell-actions="props">
-            <q-td :props="props">
-              <q-btn icon="visibility" size="sm" flat round color="info" @click.stop="viewPurchase(props.row)"><q-tooltip>Ver</q-tooltip></q-btn>
-            </q-td>
-          </template>
-        </q-table>
       </q-card-section>
+      <q-table :rows="purchases" :columns="columns" row-key="id" v-model:pagination="pagination"
+        :loading="loading" :rows-per-page-options="[10, 25, 50]" flat @request="onTableRequest">
+        <template #no-data>
+          <div class="text-center q-py-lg text-grey-6">
+            <q-icon name="shopping_cart" size="48px" />
+            <div class="text-subtitle1 q-mt-sm">Sin compras registradas</div>
+          </div>
+        </template>
+      </q-table>
     </q-card>
   </q-page>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
-import AppPageHeader from '@components/shared/AppPageHeader.vue';
-import { resources } from '@api-resources/GeneralApiResource';
-import { useFetchHttp } from '@composables/useFetchHttp';
-
-const { fetchHttpResource } = useFetchHttp();
-const $q = useQuasar();
-
-interface Purchase { id: number; purchase_date: string; total: number; supplier_name?: string; }
-
-const purchases = ref<Purchase[]>([]);
-const loading = ref(false);
-const filter = ref('');
-
-const columns = [
-  { name: 'id', label: '#', field: 'id', align: 'left' as const },
-  { name: 'purchase_date', label: 'Fecha', field: 'purchase_date', align: 'left' as const },
-  { name: 'total', label: 'Total', field: 'total', align: 'right' as const },
-  { name: 'supplier_name', label: 'Proveedor', field: 'supplier_name', align: 'left' as const },
-  { name: 'actions', label: '', field: 'id', align: 'center' as const },
-];
-
-async function loadPurchases() {
-  loading.value = true;
-  try {
-    const res = await fetchHttpResource(resources.allPurchases);
-    purchases.value = Array.isArray(res.data) ? res.data as Purchase[] : (res.data as unknown as { data: Purchase[] })?.data || [];
-  } catch { $q.notify({ type: 'negative', message: 'Error al cargar compras' }); }
-  finally { loading.value = false; }
-}
-
-function viewPurchase(row: Purchase) {
-  $q.notify({ type: 'info', message: `Compra #${row.id}`, timeout: 2000 });
-}
-
-onMounted(() => { void loadPurchases(); });
-</script>

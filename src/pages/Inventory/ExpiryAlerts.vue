@@ -1,48 +1,47 @@
-<template>
-  <q-page class="q-pa-md">
-    <AppPageHeader title="Productos por Vencer" subtitle="Lotes próximos a caducar" />
-    <q-card flat bordered>
-      <q-card-section>
-        <q-table :rows="items" :columns="columns" :loading="loading" row-key="id" flat dense>
-          <template #body-cell-expiration_date="props">
-            <q-td :props="props">
-              <q-chip :color="isExpired(props.value) ? 'negative' : 'warning'" text-color="white" size="sm">{{ props.value || '-' }}</q-chip>
-            </q-td>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card>
-  </q-page>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { Notify } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
-import { useQuasar } from 'quasar';
+import { productResources } from '@pages/Inventory/Products/api-resource/productResource';
+import AppStatusChip from '@components/shared/AppStatusChip.vue';
 
-interface Batch { id: number; batch_number: string; product_name: string; stock: number; expiration_date: string; }
+defineOptions({ name: 'ExpiryAlertsPage' });
+
+interface ExpiryItem { id: number; name: string; batch: string; stock: number; expiration_date: string; }
 const { fetchHttpResource } = useFetchHttp();
-const $q = useQuasar();
-const items = ref<Batch[]>([]);
+const items = ref<ExpiryItem[]>([]);
 const loading = ref(false);
+
 const columns = [
-  { name: 'product_name', label: 'Producto', field: 'product_name', align: 'left' as const },
-  { name: 'batch_number', label: 'Lote', field: 'batch_number', align: 'left' as const },
+  { name: 'name', label: 'Producto', field: 'name', align: 'left' as const },
+  { name: 'batch', label: 'Lote', field: 'batch', align: 'left' as const },
   { name: 'stock', label: 'Stock', field: 'stock', align: 'center' as const },
   { name: 'expiration_date', label: 'Vencimiento', field: 'expiration_date', align: 'center' as const },
 ];
 
-function isExpired(date: string) { return date && new Date(date) < new Date(); }
+function isExpired(d: string) { return new Date(d) < new Date(); }
 
 onMounted(async () => {
   loading.value = true;
   try {
-    const r = await fetchHttpResource({ path: '/product', method: 'get' as never });
-    const all = Array.isArray(r.data) ? r.data : (r.data as any)?.data || [];
-    // Filter products with expiring batches - simplified: show all with expiration_date
-    items.value = (all as Batch[]).filter((p) => p.expiration_date).slice(0, 20);
-  } catch { $q.notify({ type: 'negative', message: 'Error' }); }
+    const res = await fetchHttpResource<ExpiryItem[]>(productResources.list({ expiring_soon: 'true', per_page: 50, page: 1 }), false);
+    const payload = res.data as unknown as { data?: ExpiryItem[] };
+    items.value = payload?.data ?? (Array.isArray(res.data) ? res.data as ExpiryItem[] : []);
+  } catch { Notify.create({ type: 'negative', message: 'Error al cargar' }); }
   finally { loading.value = false; }
 });
 </script>
+
+<template>
+  <q-page class="q-pa-md">
+    <AppPageHeader title="Productos por Vencer" subtitle="Lotes próximos a caducar (30 días)" />
+    <q-card flat bordered>
+      <q-table :rows="items" :columns="columns" row-key="id" :loading="loading" flat>
+        <template #body-cell-expiration_date="{ value }">
+          <q-td><AppStatusChip :status="isExpired(value) ? 'error' : 'warning'" :label="value" /></q-td>
+        </template>
+      </q-table>
+    </q-card>
+  </q-page>
+</template>
