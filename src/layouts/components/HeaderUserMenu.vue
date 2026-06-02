@@ -5,11 +5,14 @@ import { defaultUser } from '../data/menuItems';
 
 defineOptions({ name: 'HeaderUserMenu' });
 
-const props = withDefaults(defineProps<{
-  user?: ILayoutUser;
-}>(), {
-  user: () => ({ ...defaultUser }),
-});
+const props = withDefaults(
+  defineProps<{
+    user?: ILayoutUser;
+  }>(),
+  {
+    user: () => ({ ...defaultUser }),
+  },
+);
 
 const emit = defineEmits<{
   logout: [];
@@ -17,9 +20,15 @@ const emit = defineEmits<{
 
 const router = useRouter();
 
-function openProfile() { router.push('/profile'); }
-function openSettings() { router.push('/settings'); }
-function changePassword() { router.push('/change-password'); }
+function openProfile() {
+  void router.push('/profile');
+}
+function openSettings() {
+  void router.push('/settings');
+}
+function changePassword() {
+  void router.push('/change-password');
+}
 </script>
 
 <template>
@@ -30,7 +39,9 @@ function changePassword() { router.push('/change-password'); }
           <img :src="user!.avatar" />
         </q-avatar>
         <div class="column" style="line-height: 1">
-          <span class="text-white text-weight-medium" style="font-size: 14px">{{ user!.name }}</span>
+          <span class="text-white text-weight-medium" style="font-size: 14px">{{
+            user!.name
+          }}</span>
           <span class="text-white" style="font-size: 11px; opacity: 0.8">{{ user!.role }}</span>
         </div>
       </div>

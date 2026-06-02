@@ -19,7 +19,7 @@ withDefaults(
 const router = useRouter();
 
 function navigate() {
-  router.push('/profile');
+  void router.push('/profile');
 }
 </script>
 

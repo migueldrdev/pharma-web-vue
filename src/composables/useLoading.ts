@@ -1,6 +1,5 @@
 // src/composables/useLoading.ts
 import { QSpinnerHourglass, QLoadingShowOptions, Loading } from 'quasar';
-// import { QLoadingShowOptions } from 'quasar';
 
 export function useLoading() {
   const defaultOptions: QLoadingShowOptions = {

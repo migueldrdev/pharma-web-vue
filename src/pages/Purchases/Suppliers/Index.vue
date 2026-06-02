@@ -36,32 +36,62 @@ async function load() {
     const res = await fetchHttpResource<ISupplier[]>(supplierResources.list(params), false);
     const payload = res.data as unknown as { data?: ISupplier[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? res.data : []);
-  } catch { Notify.create({ type: 'negative', message: 'Error al cargar' }); }
-  finally { loading.value = false; }
+  } catch {
+    Notify.create({ type: 'negative', message: 'Error al cargar' });
+  } finally {
+    loading.value = false;
+  }
 }
 
-function openCreate() { editing.value = false; form.value = { name: '', email: '', phone: '', address: '' }; showDialog.value = true; }
-function openEdit(s: ISupplier) { editing.value = true; current.value = s; form.value = { name: s.name, email: s.email, phone: s.phone ?? '', address: s.address ?? '' }; showDialog.value = true; }
+function openCreate() {
+  editing.value = false;
+  form.value = { name: '', email: '', phone: '', address: '' };
+  showDialog.value = true;
+}
+function openEdit(s: ISupplier) {
+  editing.value = true;
+  current.value = s;
+  form.value = { name: s.name, email: s.email, phone: s.phone ?? '', address: s.address ?? '' };
+  showDialog.value = true;
+}
 
 async function save() {
   try {
     if (editing.value && current.value) {
-      await fetchHttpResource({ ...supplierResources.update(current.value.id), data: form.value as unknown as Record<string, unknown> });
+      await fetchHttpResource({
+        ...supplierResources.update(current.value.id),
+        data: form.value as unknown as Record<string, unknown>,
+      });
       Notify.create({ type: 'positive', message: 'Proveedor actualizado' });
     } else {
-      await fetchHttpResource({ ...supplierResources.create, data: form.value as unknown as Record<string, unknown> });
+      await fetchHttpResource({
+        ...supplierResources.create,
+        data: form.value as unknown as Record<string, unknown>,
+      });
       Notify.create({ type: 'positive', message: 'Proveedor creado' });
     }
-    showDialog.value = false; load();
-  } catch { Notify.create({ type: 'negative', message: 'Error al guardar' }); }
+    showDialog.value = false;
+    await load();
+  } catch {
+    Notify.create({ type: 'negative', message: 'Error al guardar' });
+  }
 }
 
-function confirmDelete(s: ISupplier) { deleting.value = s; showDelete.value = true; }
+function confirmDelete(s: ISupplier) {
+  deleting.value = s;
+  showDelete.value = true;
+}
 async function onDelete() {
   if (!deleting.value) return;
-  try { await fetchHttpResource(supplierResources.delete(deleting.value.id)); Notify.create({ type: 'positive', message: 'Eliminado' }); load(); }
-  catch { Notify.create({ type: 'negative', message: 'Error al eliminar' }); }
-  finally { showDelete.value = false; }
+  try {
+    await fetchHttpResource(supplierResources.delete(deleting.value.id));
+    Notify.create({ type: 'positive', message: 'Eliminado' });
+    await load();
+  } catch {
+    Notify.create({ type: 'negative', message: 'Error al eliminar' });
+  } finally {
+    showDelete.value = false;
+  }
 }
 
 const deleteMsg = computed(() => `¿Eliminar "${deleting.value?.name ?? ''}"?`);
@@ -79,7 +109,15 @@ onMounted(() => load());
     </AppPageHeader>
     <q-card flat bordered>
       <q-card-section>
-        <q-input v-model="filter" label="Buscar" outlined dense clearable debounce="400" @update:model-value="load()">
+        <q-input
+          v-model="filter"
+          label="Buscar"
+          outlined
+          dense
+          clearable
+          debounce="400"
+          @update:model-value="load()"
+        >
           <template #prepend><q-icon name="search" /></template>
         </q-input>
       </q-card-section>
@@ -87,7 +125,14 @@ onMounted(() => load());
         <template #body-cell-actions="{ row }">
           <q-td class="text-center">
             <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(row)" />
-            <q-btn icon="delete" size="sm" flat round color="negative" @click="confirmDelete(row)" />
+            <q-btn
+              icon="delete"
+              size="sm"
+              flat
+              round
+              color="negative"
+              @click="confirmDelete(row)"
+            />
           </q-td>
         </template>
       </q-table>
@@ -95,17 +140,39 @@ onMounted(() => load());
 
     <q-dialog v-model="showDialog">
       <q-card style="width: 500px; max-width: 90vw">
-        <q-bar class="bg-primary text-white"><div>{{ editing ? 'Editar' : 'Nuevo' }} Proveedor</div><q-space /><q-btn dense flat icon="close" v-close-popup /></q-bar>
+        <q-bar class="bg-primary text-white"
+          ><div>{{ editing ? 'Editar' : 'Nuevo' }} Proveedor</div>
+          <q-space /><q-btn dense flat icon="close" v-close-popup
+        /></q-bar>
         <q-card-section>
-          <q-input v-model="form.name" label="Nombre *" outlined dense :rules="[(v: string) => !!v || 'Requerido']" class="q-mb-sm" />
+          <q-input
+            v-model="form.name"
+            label="Nombre *"
+            outlined
+            dense
+            :rules="[(v: string) => !!v || 'Requerido']"
+            class="q-mb-sm"
+          />
           <q-input v-model="form.email" label="Email" outlined dense class="q-mb-sm" />
           <q-input v-model="form.phone" label="Teléfono" outlined dense class="q-mb-sm" />
           <q-input v-model="form.address" label="Dirección" outlined dense />
         </q-card-section>
-        <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="primary" label="Guardar" @click="save" /></q-card-actions>
+        <q-card-actions align="right"
+          ><q-btn flat label="Cancelar" v-close-popup /><q-btn
+            color="primary"
+            label="Guardar"
+            @click="save"
+        /></q-card-actions>
       </q-card>
     </q-dialog>
 
-    <AppConfirmDialog v-model="showDelete" title="Eliminar proveedor" :message="deleteMsg" confirm-label="Eliminar" color="negative" @confirm="onDelete" />
+    <AppConfirmDialog
+      v-model="showDelete"
+      title="Eliminar proveedor"
+      :message="deleteMsg"
+      confirm-label="Eliminar"
+      color="negative"
+      @confirm="onDelete"
+    />
   </q-page>
 </template>

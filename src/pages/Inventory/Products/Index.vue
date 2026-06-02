@@ -3,7 +3,14 @@
     <AppPageHeader title="Productos" subtitle="Gestión de inventario farmacéutico">
       <template #actions>
         <q-btn color="primary" icon="add" label="Nuevo" @click="openCreate" unelevated />
-        <q-btn v-if="selectedProducts.length" color="negative" icon="delete" :label="`Eliminar (${selectedProducts.length})`" @click="confirmDeleteMultiple" outline />
+        <q-btn
+          v-if="selectedProducts.length"
+          color="negative"
+          icon="delete"
+          :label="`Eliminar (${selectedProducts.length})`"
+          @click="confirmDeleteMultiple"
+          outline
+        />
         <q-btn icon="refresh" flat round @click="loadProducts" :loading="loading">
           <q-tooltip>Actualizar</q-tooltip>
         </q-btn>
@@ -47,7 +54,16 @@
         </template>
         <template #body-cell-image="{ row }">
           <q-td>
-            <q-avatar v-if="row.image" size="36px" rounded class="cursor-pointer" @click="previewImage = row.image; showPreview = true">
+            <q-avatar
+              v-if="row.image"
+              size="36px"
+              rounded
+              class="cursor-pointer"
+              @click="
+                previewImage = row.image;
+                showPreview = true;
+              "
+            >
               <img :src="row.image" :alt="row.name" />
             </q-avatar>
             <q-icon v-else name="image_not_supported" size="20px" color="grey-5" />
@@ -75,10 +91,21 @@
       </q-table>
     </q-card>
 
-    <ProductForm v-model="showDialog" :product="currentProduct" :is-edit="isEdit" @saved="onSaved" />
+    <ProductForm
+      v-model="showDialog"
+      :product="currentProduct"
+      :is-edit="isEdit"
+      @saved="onSaved"
+    />
 
-    <AppConfirmDialog v-model="showDeleteConfirm" title="Eliminar producto"
-      :message="deleteMessage" confirm-label="Eliminar" color="negative" @confirm="onDeleteConfirm" />
+    <AppConfirmDialog
+      v-model="showDeleteConfirm"
+      title="Eliminar producto"
+      :message="deleteMessage"
+      confirm-label="Eliminar"
+      color="negative"
+      @confirm="onDeleteConfirm"
+    />
 
     <q-dialog v-model="showPreview">
       <q-card>
@@ -108,8 +135,14 @@ import type { IComboItem } from '@interfaces/IComboItem';
 defineOptions({ name: 'ProductsPage' });
 
 const {
-  products, loading, selectedProducts, filters, pagination,
-  loadProducts, deleteProduct, deleteMultiple,
+  products,
+  loading,
+  selectedProducts,
+  filters,
+  pagination,
+  loadProducts,
+  deleteProduct,
+  deleteMultiple,
 } = useProducts();
 
 const { loadComboData } = useCombo();
@@ -134,30 +167,56 @@ const columns = [
   { name: 'lab_name', label: 'Laboratorio', field: 'lab_name', align: 'left' as const },
   { name: 'stock', label: 'Stock', field: 'stock', align: 'center' as const, sortable: true },
   { name: 'price', label: 'Precio', field: 'price', align: 'right' as const, sortable: true },
-  { name: 'actions', label: 'Acciones', field: 'actions', align: 'center' as const, style: 'width: 110px' },
+  {
+    name: 'actions',
+    label: 'Acciones',
+    field: 'actions',
+    align: 'center' as const,
+    style: 'width: 110px',
+  },
 ];
 
 const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? ''}"?`);
 
-function onFilterChange() {
+async function onFilterChange() {
   pagination.value.page = 1;
-  loadProducts();
+  await loadProducts();
 }
 
-function onTableRequest(props: { pagination: { page: number; rowsPerPage: number; sortBy: string; descending: boolean } }) {
+async function onTableRequest(props: {
+  pagination: { page: number; rowsPerPage: number; sortBy: string; descending: boolean };
+}) {
   pagination.value.page = props.pagination.page;
   pagination.value.rowsPerPage = props.pagination.rowsPerPage;
   pagination.value.sortBy = props.pagination.sortBy;
   pagination.value.descending = props.pagination.descending;
-  loadProducts();
+  await loadProducts();
 }
 
-function openCreate() { currentProduct.value = null; isEdit.value = false; showDialog.value = true; }
-function openEdit(product: IProduct) { currentProduct.value = product; isEdit.value = true; showDialog.value = true; }
-function onSaved() { showDialog.value = false; currentProduct.value = null; loadProducts(); }
+function openCreate() {
+  currentProduct.value = null;
+  isEdit.value = false;
+  showDialog.value = true;
+}
+function openEdit(product: IProduct) {
+  currentProduct.value = product;
+  isEdit.value = true;
+  showDialog.value = true;
+}
+async function onSaved() {
+  showDialog.value = false;
+  currentProduct.value = null;
+  await loadProducts();
+}
 
-function confirmDelete(product: IProduct) { deleteTarget.value = product; showDeleteConfirm.value = true; }
-function confirmDeleteMultiple() { deleteTarget.value = null; showDeleteConfirm.value = true; }
+function confirmDelete(product: IProduct) {
+  deleteTarget.value = product;
+  showDeleteConfirm.value = true;
+}
+function confirmDeleteMultiple() {
+  deleteTarget.value = null;
+  showDeleteConfirm.value = true;
+}
 
 async function onDeleteConfirm() {
   if (deleteTarget.value) await deleteProduct(deleteTarget.value.id);
@@ -177,10 +236,7 @@ function getStockColor(v: number): string {
 }
 
 onMounted(async () => {
-  await Promise.all([
-    loadComboData('categoriesCombo'),
-    loadComboData('labsCombo'),
-  ]);
+  await Promise.all([loadComboData('categoriesCombo'), loadComboData('labsCombo')]);
   categoryOptions.value = comboStore.getComboData('categoriesCombo');
   labOptions.value = comboStore.getComboData('labsCombo');
   await loadProducts();

@@ -7,11 +7,14 @@ import { defaultNotifications } from '../data/menuItems';
 
 defineOptions({ name: 'HeaderNotifications' });
 
-const props = withDefaults(defineProps<{
-  notifications?: ILayoutNotification[];
-}>(), {
-  notifications: () => [...defaultNotifications],
-});
+const props = withDefaults(
+  defineProps<{
+    notifications?: ILayoutNotification[];
+  }>(),
+  {
+    notifications: () => [...defaultNotifications],
+  },
+);
 
 const router = useRouter();
 
@@ -29,7 +32,7 @@ function markAllAsRead() {
 function onNotificationClick(n: ILayoutNotification) {
   n.read = true;
   if (n.title === 'Configuración') {
-    router.push('/settings');
+    void router.push('/settings');
   }
 }
 </script>
@@ -41,7 +44,10 @@ function onNotificationClick(n: ILayoutNotification) {
     </q-badge>
     <q-menu>
       <div style="width: 320px; max-height: 400px">
-        <div class="row items-center justify-between q-pa-md" style="border-bottom: 1px solid $grey-3">
+        <div
+          class="row items-center justify-between q-pa-md"
+          style="border-bottom: 1px solid grey-3"
+        >
           <strong>Notificaciones</strong>
           <q-btn flat dense icon="mark_email_read" size="sm" @click="markAllAsRead" />
         </div>

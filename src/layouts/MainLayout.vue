@@ -57,6 +57,7 @@ import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import { useMainLayout } from './composables/useMainLayout';
 import { defaultUser } from './data/menuItems';
+import { ILayoutUser } from './interfaces/ILayout.js';
 
 defineOptions({ name: 'MainLayout' });
 
@@ -79,8 +80,8 @@ const {
   navigateTo,
 } = useMainLayout();
 
-const searchQuery = ref('');
-const userData = ref({ ...defaultUser });
+const searchQuery = ref<string>('');
+const userData = ref<ILayoutUser>({ ...defaultUser });
 
 async function handleLogout() {
   show();

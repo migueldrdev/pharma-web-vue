@@ -8,40 +8,77 @@ defineOptions({ name: 'PurchasesPage' });
 
 const { purchases, loading, filter, pagination, loadPurchases } = usePurchases();
 
-function onTableRequest(props: { pagination: { page: number; rowsPerPage: number } }) {
+async function onTableRequest(props: { pagination: { page: number; rowsPerPage: number } }) {
   pagination.value.page = props.pagination.page;
   pagination.value.rowsPerPage = props.pagination.rowsPerPage;
-  loadPurchases();
+  await loadPurchases();
 }
 
 const columns = [
   { name: 'id', label: '#', field: 'id', align: 'left' as const },
-  { name: 'purchase_date', label: 'Fecha', field: (row: IPurchase) => row.purchase_date?.slice(0, 10) ?? '-', align: 'left' as const },
+  {
+    name: 'purchase_date',
+    label: 'Fecha',
+    field: (row: IPurchase) => row.purchase_date?.slice(0, 10) ?? '-',
+    align: 'left' as const,
+  },
   { name: 'supplier_name', label: 'Proveedor', field: 'supplier_name', align: 'left' as const },
-  { name: 'total', label: 'Total', field: (row: IPurchase) => `S/ ${Number(row.total).toFixed(2)}`, align: 'right' as const },
+  {
+    name: 'total',
+    label: 'Total',
+    field: (row: IPurchase) => `S/ ${Number(row.total).toFixed(2)}`,
+    align: 'right' as const,
+  },
 ];
 
-onMounted(() => { loadPurchases(); });
+onMounted(async () => {
+  await loadPurchases();
+});
 </script>
 
 <template>
   <q-page class="q-pa-md">
     <AppPageHeader title="Compras" subtitle="Historial de compras">
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nueva Compra" unelevated :to="{ path: '/purchases/new' }" />
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Nueva Compra"
+          unelevated
+          :to="{ path: '/purchases/new' }"
+        />
         <q-btn icon="refresh" flat round @click="loadPurchases()" :loading="loading" />
       </template>
     </AppPageHeader>
 
     <q-card flat bordered>
       <q-card-section>
-        <q-input v-model="filter" label="Buscar por proveedor" outlined dense clearable debounce="400" class="q-mb-md"
-          @update:model-value="pagination.page = 1; loadPurchases()">
+        <q-input
+          v-model="filter"
+          label="Buscar por proveedor"
+          outlined
+          dense
+          clearable
+          debounce="400"
+          class="q-mb-md"
+          @update:model-value="
+            pagination.page = 1;
+            loadPurchases();
+          "
+        >
           <template #prepend><q-icon name="search" /></template>
         </q-input>
       </q-card-section>
-      <q-table :rows="purchases" :columns="columns" row-key="id" v-model:pagination="pagination"
-        :loading="loading" :rows-per-page-options="[10, 25, 50]" flat @request="onTableRequest">
+      <q-table
+        :rows="purchases"
+        :columns="columns"
+        row-key="id"
+        v-model:pagination="pagination"
+        :loading="loading"
+        :rows-per-page-options="[10, 25, 50]"
+        flat
+        @request="onTableRequest"
+      >
         <template #no-data>
           <div class="text-center q-py-lg text-grey-6">
             <q-icon name="shopping_cart" size="48px" />
