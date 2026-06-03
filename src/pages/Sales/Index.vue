@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import ExportButtons from '@components/ExportButtons.vue';
 import { useSales } from './composables/useSales';
 import type { ISale } from './interfaces/ISale';
 
@@ -52,6 +53,17 @@ const columns = [
   },
 ];
 
+// Transform sales data for export
+const exportData = computed(() => {
+  return sales.value.map((sale: ISale) => ({
+    ID: sale.id,
+    Fecha: sale.sale_date?.slice(0, 10) ?? '-',
+    Cliente: sale.client_name || sale.customer_name || 'Anónimo',
+    Total: Number(sale.total).toFixed(2),
+    Estado: sale.active ? 'Activa' : 'Anulada',
+  }));
+});
+
 onMounted(async () => {
   await loadSales();
 });
@@ -73,6 +85,18 @@ onMounted(async () => {
     </AppPageHeader>
 
     <q-card flat bordered>
+      <q-card-section>
+        <div class="row q-gutter-md items-center q-mb-md">
+          <ExportButtons
+            :data="exportData"
+            filename="ventas"
+            sheet-name="Ventas"
+            show-pdf-export
+            pdf-export-type="sales"
+          />
+        </div>
+      </q-card-section>
+
       <q-card-section>
         <div class="row q-gutter-sm items-end q-mb-md">
           <q-input

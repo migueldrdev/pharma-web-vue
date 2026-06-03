@@ -9,7 +9,9 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "dev": "quasar dev",
     "build": "quasar build",
     "postinstall": "quasar prepare"
@@ -21,29 +23,38 @@
     "caniuse-lite": "^1.0.30001793",
     "highcharts": "^12.3.0",
     "highcharts-vue": "^2.0.1",
+    "papaparse": "^5.5.3",
     "pinia": "^3.0.1",
     "pinia-plugin-persistedstate": "^4.7.1",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",
     "vue-i18n": "^12.0.0-alpha.3",
-    "vue-router": "^4.0.12"
+    "vue-router": "^4.0.12",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
     "@intlify/unplugin-vue-i18n": "^11.2.3",
     "@quasar/app-vite": "^2.1.0",
     "@types/highcharts": "^7.0.0",
-    "@types/node": "^20.5.9",
+    "@types/node": "^20.19.41",
+    "@types/papaparse": "^5.5.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitest/ui": "^4.1.8",
     "@vue/eslint-config-prettier": "^10.1.0",
     "@vue/eslint-config-typescript": "^14.4.0",
+    "@vue/test-utils": "^2.4.10",
     "autoprefixer": "^10.4.2",
     "eslint": "^9.14.0",
     "eslint-plugin-vue": "^9.30.0",
     "globals": "^15.12.0",
+    "happy-dom": "^20.9.0",
     "prettier": "^3.3.3",
     "typescript": "~5.5.3",
     "vite-plugin-checker": "^0.9.0",
-    "vue-tsc": "^2.0.29"
+    "vitest": "^4.1.8",
+    "vue-tsc": "^2.0.29",
+    "zod": "^4.4.3"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",

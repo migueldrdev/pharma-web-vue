@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import ExportButtons from '@components/ExportButtons.vue';
 import { usePurchases } from './composables/usePurchases';
 import type { IPurchase } from './interfaces/IPurchase';
 
@@ -31,6 +32,16 @@ const columns = [
   },
 ];
 
+// Transform purchases data for export
+const exportData = computed(() => {
+  return purchases.value.map((purchase: IPurchase) => ({
+    ID: purchase.id,
+    Fecha: purchase.purchase_date?.slice(0, 10) ?? '-',
+    Proveedor: purchase.supplier_name || '-',
+    Total: Number(purchase.total).toFixed(2),
+  }));
+});
+
 onMounted(async () => {
   await loadPurchases();
 });
@@ -52,6 +63,18 @@ onMounted(async () => {
     </AppPageHeader>
 
     <q-card flat bordered>
+      <q-card-section>
+        <div class="row q-gutter-md items-center q-mb-md">
+          <ExportButtons
+            :data="exportData"
+            filename="compras"
+            sheet-name="Compras"
+            show-pdf-export
+            pdf-export-type="purchases"
+          />
+        </div>
+      </q-card-section>
+
       <q-card-section>
         <q-input
           v-model="filter"

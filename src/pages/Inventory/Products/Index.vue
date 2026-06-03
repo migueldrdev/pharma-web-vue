@@ -27,6 +27,20 @@
       @changed="onFilterChange"
     />
 
+    <q-card flat bordered class="q-mb-md">
+      <q-card-section class="q-pa-md">
+        <div class="row q-gutter-md items-center">
+          <ExportButtons
+            :data="exportData"
+            filename="productos"
+            sheet-name="Productos"
+            show-pdf-export
+            pdf-export-type="inventory"
+          />
+        </div>
+      </q-card-section>
+    </q-card>
+
     <q-card flat bordered>
       <q-table
         :rows="products"
@@ -124,6 +138,7 @@
 import { ref, onMounted, computed } from 'vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
+import ExportButtons from '@components/ExportButtons.vue';
 import ProductFilters from './components/ProductFilters.vue';
 import ProductForm from './components/ProductForm.vue';
 import { useProducts } from './composables/useProducts';
@@ -177,6 +192,18 @@ const columns = [
 ];
 
 const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? ''}"?`);
+
+// Transform products data for export
+const exportData = computed(() => {
+  return products.value.map((product: IProduct) => ({
+    Código: product.code || '-',
+    Producto: product.name,
+    Categoría: product.category_name || '-',
+    Laboratorio: product.lab_name || '-',
+    Stock: product.stock,
+    Precio: Number(product.price).toFixed(2),
+  }));
+});
 
 async function onFilterChange() {
   pagination.value.page = 1;
