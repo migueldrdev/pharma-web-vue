@@ -46,13 +46,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Dark, Notify } from 'quasar';
+import { Dark } from 'quasar';
 import { useAuthStore } from '@stores/login/auth';
 import { useMenuStore } from '@stores/login/auth';
 import { usePermissionsStore } from '@stores/login/permissions';
 import { useLoading } from '@composables/useLoading';
+import { useNotify } from '@composables/useNotify';
+import { useAlerts } from '@composables/useAlerts';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import { useMainLayout } from './composables/useMainLayout';
@@ -67,6 +69,8 @@ const authStore = useAuthStore();
 const menuStore = useMenuStore();
 const permissionsStore = usePermissionsStore();
 const { show, hide } = useLoading();
+const { success, error } = useNotify();
+const { stockAlertCount, expiryAlertCount, fetchAlerts } = useAlerts();
 
 const {
   leftDrawerOpen,
@@ -83,17 +87,19 @@ const {
 const searchQuery = ref<string>('');
 const userData = ref<ILayoutUser>({ ...defaultUser });
 
+// Actualizar badges del menú con conteos reales
+watch([stockAlertCount, expiryAlertCount], ([stock, expiry]) => {
+  menuStore.updateMenuBadge('stock-alerts', stock > 0 ? stock : undefined, 'warning');
+  menuStore.updateMenuBadge('expiry-alerts', expiry > 0 ? expiry : undefined, 'negative');
+});
+
 async function handleLogout() {
   show();
   try {
     await authStore.logout(router);
-    Notify.create({
-      message: 'Sesión cerrada correctamente',
-      type: 'positive',
-      position: 'top-right',
-    });
+    success('Sesión cerrada correctamente');
   } catch {
-    Notify.create({ message: 'Error al cerrar sesión', type: 'negative', position: 'top-right' });
+    error('Error al cerrar sesión');
   } finally {
     hide();
   }
@@ -117,5 +123,6 @@ onMounted(async () => {
 
   await menuStore.loadMenus();
   await permissionsStore.loadPermissions();
+  await fetchAlerts();
 });
 </script>
