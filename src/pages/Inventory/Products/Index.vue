@@ -14,6 +14,16 @@
         <q-btn icon="refresh" flat round @click="loadProducts" :loading="loading">
           <q-tooltip>Actualizar</q-tooltip>
         </q-btn>
+        <q-btn
+          icon="psychology"
+          flat
+          round
+          color="purple"
+          @click="handleRegenerateAI"
+          :loading="regenerating"
+        >
+          <q-tooltip>Regenerar predicciones AI</q-tooltip>
+        </q-btn>
       </template>
     </AppPageHeader>
 
@@ -129,6 +139,9 @@ import ProductForm from './components/ProductForm.vue';
 import { useProducts } from './composables/useProducts';
 import { useCombo } from '@composables/useCombo';
 import { useComboStore } from '@stores/combos/comboStore';
+import { useFetchHttp } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
+import { predictionResources } from '@/api-resources/predictionResource';
 import type { IProduct } from './interfaces/IProduct';
 import type { IComboItem } from '@interfaces/IComboItem';
 
@@ -145,8 +158,12 @@ const {
   deleteMultiple,
 } = useProducts();
 
+const { fetchHttpResource } = useFetchHttp();
+const { success: notifySuccess, error: notifyError } = useNotify();
 const { loadComboData } = useCombo();
 const comboStore = useComboStore();
+
+const regenerating = ref<boolean>(false);
 
 const categoryOptions = ref<IComboItem[]>(comboStore.getComboData('categoriesCombo'));
 const labOptions = ref<IComboItem[]>(comboStore.getComboData('labsCombo'));
@@ -181,6 +198,21 @@ const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? 
 async function onFilterChange() {
   pagination.value.page = 1;
   await loadProducts();
+}
+
+async function handleRegenerateAI(): Promise<void> {
+  regenerating.value = true
+  try {
+    const res = await fetchHttpResource(predictionResources.regenerate)
+    if (res.success) {
+      notifySuccess('Predicciones AI regeneradas correctamente')
+      await loadProducts()
+    }
+  } catch {
+    notifyError('Error al regenerar predicciones')
+  } finally {
+    regenerating.value = false
+  }
 }
 
 async function onTableRequest(props: {
