@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
+import { useValidation } from '@composables/useValidation';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { resources } from '@api-resources/GeneralApiResource';
 
@@ -14,6 +15,7 @@ interface Category {
 }
 const { fetchHttpResource } = useFetchHttp();
 const { success, error } = useNotify();
+const { required } = useValidation();
 const items = ref<Category[]>([]);
 const loading = ref(false);
 const filter = ref('');
@@ -152,7 +154,7 @@ onMounted(() => load());
             label="Nombre *"
             outlined
             dense
-            :rules="[(v: string) => !!v || 'Requerido']"
+            :rules="[required('Nombre')]"
           />
         </q-card-section>
         <q-card-actions align="right"

@@ -22,13 +22,13 @@
                       <q-icon name="info" size="xs" class="q-mr-xs" /> Información Básica
                     </div>
                     <q-input v-model="form.name" label="Nombre *" outlined dense lazy-rules
-                      :rules="[(v: string) => !!v || 'Requerido']" :disable="saving">
+                      :rules="[required('Nombre')]" :disable="saving">
                       <template #prepend><q-icon name="medical_services" /></template>
                     </q-input>
                     <div class="row q-mt-sm">
                       <div class="col-6 q-pr-sm">
                         <q-input v-model="form.code" label="Código *" outlined dense lazy-rules
-                          :rules="[(v: string) => !!v || 'Requerido']" :disable="saving">
+                          :rules="[required('Código')]" :disable="saving">
                           <template #prepend><q-icon name="qr_code" /></template>
                           <template #append>
                             <q-btn icon="casino" flat dense round size="sm" @click="generateCode" :disable="saving">
@@ -39,7 +39,7 @@
                       </div>
                       <div class="col-6 q-pl-sm">
                         <q-input v-model="form.pharmaceutical_form" label="Forma Farmacéutica *" outlined dense lazy-rules
-                          :rules="[(v: string) => !!v || 'Requerido']" :disable="saving">
+                          :rules="[required('Forma Farmacéutica')]" :disable="saving">
                           <template #prepend><q-icon name="science" /></template>
                         </q-input>
                       </div>
@@ -55,25 +55,25 @@
                     <div class="row q-col-gutter-sm">
                       <div class="col-6">
                         <q-select v-model="form.category_id" :options="categoryOptions" label="Categoría *" outlined dense
-                          emit-value map-options :rules="[(v: number | null) => !!v || 'Requerido']" :disable="saving">
+                          emit-value map-options :rules="[required('Categoría')]" :disable="saving">
                           <template #prepend><q-icon name="folder" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.lab_id" :options="labOptions" label="Laboratorio *" outlined dense
-                          emit-value map-options :rules="[(v: number | null) => !!v || 'Requerido']" :disable="saving">
+                          emit-value map-options :rules="[required('Laboratorio')]" :disable="saving">
                           <template #prepend><q-icon name="business" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.type_id" :options="typeOptions" label="Tipo *" outlined dense
-                          emit-value map-options :rules="[(v: number | null) => !!v || 'Requerido']" :disable="saving">
+                          emit-value map-options :rules="[required('Tipo')]" :disable="saving">
                           <template #prepend><q-icon name="label" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.presentation_id" :options="presentationOptions" label="Presentación *" outlined dense
-                          emit-value map-options :rules="[(v: number | null) => !!v || 'Requerido']" :disable="saving">
+                          emit-value map-options :rules="[required('Presentación')]" :disable="saving">
                           <template #prepend><q-icon name="inventory" /></template>
                         </q-select>
                       </div>
@@ -159,7 +159,7 @@
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.status" :options="statusOptions" label="Estado *" outlined dense
-                          emit-value map-options :rules="[(v: string) => !!v || 'Requerido']" :disable="saving" />
+                          emit-value map-options :rules="[required('Estado')]" :disable="saving" />
                       </div>
                       <div class="col-6">
                         <q-checkbox v-model="form.requires_prescription" label="Requiere Receta" :disable="saving" />
@@ -190,6 +190,7 @@ import { ref, computed, watch } from 'vue';
 import { useComboStore } from '@stores/combos/comboStore';
 import type { IComboItem } from '@interfaces/IComboItem';
 import type { IProduct } from '../interfaces/IProduct';
+import { useValidation } from '@composables/useValidation';
 import { useProductForm } from '../composables/useProductForm';
 
 defineOptions({ name: 'ProductForm' });
@@ -211,6 +212,7 @@ const {
   populateFromProduct, resetForm, generateCode,
   setImageFile, removeImage, save,
 } = useProductForm();
+const { required } = useValidation();
 
 const formRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
