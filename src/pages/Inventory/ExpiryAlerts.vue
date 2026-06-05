@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { productResources } from '@pages/Inventory/Products/api-resource/productResource';
@@ -10,6 +10,7 @@ defineOptions({ name: 'ExpiryAlertsPage' });
 
 interface ExpiryItem { id: number; name: string; batch: string; stock: number; expiration_date: string; }
 const { fetchHttpResource } = useFetchHttp();
+const { error } = useNotify();
 const items = ref<ExpiryItem[]>([]);
 const loading = ref(false);
 
@@ -28,7 +29,7 @@ onMounted(async () => {
     const res = await fetchHttpResource<ExpiryItem[]>(productResources.list({ expiring_soon: 'true', per_page: 50, page: 1 }), false);
     const payload = res.data as unknown as { data?: ExpiryItem[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? res.data as ExpiryItem[] : []);
-  } catch { Notify.create({ type: 'negative', message: 'Error al cargar' }); }
+  } catch { error('Error al cargar'); }
   finally { loading.value = false; }
 });
 </script>

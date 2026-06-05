@@ -1,11 +1,12 @@
 import { ref } from 'vue';
-import { Notify } from 'quasar';
 import { useFetchHttp } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
 import { saleResources } from '../api-resource/saleResource';
 import type { ISale } from '../interfaces/ISale';
 
 export function useSales() {
   const { fetchHttpResource } = useFetchHttp();
+  const { error } = useNotify();
   const sales = ref<ISale[]>([]);
   const loading = ref(false);
   const filter = ref('');
@@ -25,7 +26,7 @@ export function useSales() {
       const payload = res.data as unknown as { data?: ISale[]; total?: number; items?: ISale[] };
       sales.value = payload?.data ?? payload?.items ?? (Array.isArray(res.data) ? res.data : []);
       pagination.value.rowsNumber = payload?.total ?? sales.value.length;
-    } catch { Notify.create({ type: 'negative', message: 'Error al cargar ventas' }); }
+    } catch { error('Error al cargar ventas'); }
     finally { loading.value = false; }
   }
 

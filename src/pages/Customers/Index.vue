@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
@@ -17,6 +17,7 @@ interface Customer {
   document_number?: string;
 }
 const { fetchHttpResource } = useFetchHttp();
+const { success, error } = useNotify();
 const items = ref<Customer[]>([]);
 const loading = ref(false);
 const filter = ref('');
@@ -44,7 +45,7 @@ async function load() {
     const payload = res.data as unknown as { data?: Customer[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? (res.data as Customer[]) : []);
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al cargar' });
+    error('Error al cargar');
   } finally {
     loading.value = false;
   }
@@ -77,15 +78,15 @@ async function save() {
         paramsRoute: [String(current.value.id)],
         data,
       });
-      Notify.create({ type: 'positive', message: 'Cliente actualizado' });
+      success('Cliente actualizado');
     } else {
       await fetchHttpResource({ ...resources.createClient, data });
-      Notify.create({ type: 'positive', message: 'Cliente creado' });
+      success('Cliente creado');
     }
     showDialog.value = false;
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al guardar' });
+    error('Error al guardar');
   }
 }
 
@@ -100,10 +101,10 @@ async function onDelete() {
       ...resources.deleteClient,
       paramsRoute: [String(deleting.value.id)],
     });
-    Notify.create({ type: 'positive', message: 'Eliminado' });
+    success('Eliminado');
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al eliminar' });
+    error('Error al eliminar');
   } finally {
     showDelete.value = false;
   }

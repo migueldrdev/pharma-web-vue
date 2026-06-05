@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Dark, Notify } from 'quasar';
+import { Dark } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import type { ILayoutBreadcrumb } from '../interfaces/ILayout';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
 import { defaultMenuItems } from '../data/menuItems';
@@ -8,6 +9,7 @@ import { defaultMenuItems } from '../data/menuItems';
 export function useMainLayout() {
   const router = useRouter();
   const route = useRoute();
+  const { info } = useNotify();
 
   const leftDrawerOpen = ref(false);
   const miniState = ref(false);
@@ -28,12 +30,7 @@ export function useMainLayout() {
   function toggleTheme() {
     Dark.toggle();
     localStorage.setItem('theme', Dark.isActive ? 'dark' : 'light');
-    Notify.create({
-      message: `Tema ${Dark.isActive ? 'oscuro' : 'claro'} activado`,
-      icon: Dark.isActive ? 'dark_mode' : 'light_mode',
-      position: 'top-right',
-      timeout: 2000,
-    });
+    info(`Tema ${Dark.isActive ? 'oscuro' : 'claro'} activado`, { position: 'top-right', timeout: 2000 });
   }
 
   function navigateTo(path: string) {

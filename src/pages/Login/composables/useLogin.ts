@@ -1,12 +1,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import { useAuthStore } from '@stores/login/auth';
 
 export function useLogin() {
   const authStore = useAuthStore();
   const router = useRouter();
   const loading = ref(false);
+  const { error: notifyError } = useNotify();
 
   async function handleLogin(email: string, password: string) {
     loading.value = true;
@@ -14,12 +15,7 @@ export function useLogin() {
       await authStore.login(email, password);
       await router.push('/');
     } catch (_e: unknown) {
-      Notify.create({
-        type: 'negative',
-        message: 'Credenciales inválidas',
-        position: 'top',
-        timeout: 3000,
-      });
+      notifyError('Credenciales inválidas');
     } finally {
       loading.value = false;
     }

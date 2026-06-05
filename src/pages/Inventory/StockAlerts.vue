@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
@@ -11,6 +11,7 @@ defineOptions({ name: 'StockAlertsPage' });
 
 interface StockItem { id: number; name: string; code: string; stock: number; min_stock: number; }
 const { fetchHttpResource } = useFetchHttp();
+const { error } = useNotify();
 const items = ref<StockItem[]>([]);
 const loading = ref(false);
 
@@ -27,7 +28,7 @@ onMounted(async () => {
     const res = await fetchHttpResource<StockItem[]>(productResources.list({ stock_status: 'low', per_page: 50, page: 1 }), false);
     const payload = res.data as unknown as { data?: StockItem[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? res.data as StockItem[] : []);
-  } catch { Notify.create({ type: 'negative', message: 'Error al cargar alertas' }); }
+  } catch { error('Error al cargar alertas'); }
   finally { loading.value = false; }
 });
 </script>

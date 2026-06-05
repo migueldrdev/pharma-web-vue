@@ -1,11 +1,12 @@
 import { ref } from 'vue';
-import { Notify } from 'quasar';
 import { useFetchHttp } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
 import { purchaseResources } from '../api-resource/purchaseResource';
 import type { IPurchase } from '../interfaces/IPurchase';
 
 export function usePurchases() {
   const { fetchHttpResource } = useFetchHttp();
+  const { error } = useNotify();
   const purchases = ref<IPurchase[]>([]);
   const loading = ref(false);
   const filter = ref('');
@@ -20,7 +21,7 @@ export function usePurchases() {
       const payload = res.data as unknown as { data?: IPurchase[]; total?: number };
       purchases.value = payload?.data ?? (Array.isArray(res.data) ? res.data : []);
       pagination.value.rowsNumber = payload?.total ?? purchases.value.length;
-    } catch { Notify.create({ type: 'negative', message: 'Error al cargar compras' }); }
+    } catch { error('Error al cargar compras'); }
     finally { loading.value = false; }
   }
 

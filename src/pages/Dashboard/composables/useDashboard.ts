@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
-import { Notify } from 'quasar';
 import { useFetchHttp, HttpMethods } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
 import type { IDashboardKPI } from '../interfaces/IDashboard';
 
 interface DashboardData {
@@ -32,6 +32,7 @@ interface DashboardData {
 
 export function useDashboard() {
   const { fetchHttpResource } = useFetchHttp();
+  const { warning } = useNotify();
   const loading = ref(false);
 
   const data = ref<DashboardData | null>(null);
@@ -137,11 +138,7 @@ export function useDashboard() {
       }
     } catch {
       if (!data.value) {
-        Notify.create({
-          type: 'warning',
-          message: 'No se pudieron cargar los datos del dashboard',
-          timeout: 3000,
-        });
+        warning('No se pudieron cargar los datos del dashboard', { timeout: 3000 });
       }
     } finally {
       loading.value = false;

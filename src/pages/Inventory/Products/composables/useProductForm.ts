@@ -1,11 +1,12 @@
 import { ref, watch, nextTick } from 'vue';
-import { Notify } from 'quasar';
 import { useFetchHttp } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
 import { productResources } from '../api-resource/productResource';
 import type { IProduct, IProductFormData } from '../interfaces/IProduct';
 
 export function useProductForm() {
   const { fetchHttpResource } = useFetchHttp();
+  const { success, error } = useNotify();
 
   const saving = ref(false);
   const imagePreview = ref('');
@@ -62,11 +63,11 @@ export function useProductForm() {
 
   function setImageFile(file: File) {
     if (!file.type.startsWith('image/')) {
-      Notify.create({ type: 'negative', message: 'Selecciona un archivo de imagen válido' });
+      error('Selecciona un archivo de imagen válido');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      Notify.create({ type: 'negative', message: 'La imagen no debe superar los 5MB' });
+      error('La imagen no debe superar los 5MB');
       return;
     }
     imageFile.value = file;
@@ -105,16 +106,16 @@ export function useProductForm() {
         fd.append('_method', 'PUT');
         const resource = { ...productResources.update(productId), data: fd };
         await fetchHttpResource(resource);
-        Notify.create({ type: 'positive', message: 'Producto actualizado' });
+        success('Producto actualizado');
       } else {
         const resource = { ...productResources.create, data: fd };
         await fetchHttpResource(resource);
-        Notify.create({ type: 'positive', message: 'Producto creado' });
+        success('Producto creado');
       }
 
       return true;
     } catch {
-      Notify.create({ type: 'negative', message: isEdit ? 'Error al actualizar' : 'Error al crear' });
+      error(isEdit ? 'Error al actualizar' : 'Error al crear');
       return false;
     } finally {
       saving.value = false;

@@ -7,7 +7,7 @@ import axios, {
   AxiosInstance,
 } from 'axios';
 import { Notify, QSpinnerHourglass } from 'quasar';
-import { api } from '@/boot/axios'; // Ajusta la ruta si es necesario
+import { api } from '@/boot/axios';
 
 import type { QNotifyCreateOptions } from 'quasar';
 
@@ -156,9 +156,9 @@ export function useFetchHttp() {
     };
 
     if (options.download) {
-      const notificationId = `download-${Date.now()}`; // ID único para la notificación
+      const notificationId = `download-${Date.now()}`;
       const updatingNotification = Notify.create({
-        group: false, // Asegura que esta notificación sea independiente
+        group: false,
         spinner: QSpinnerHourglass,
         type: 'ongoing',
         color: 'primary',
@@ -167,7 +167,7 @@ export function useFetchHttp() {
         spinnerSize: '0.6em',
         message: 'Descargando archivo...',
       });
-      activeDownloadNotifications.set(notificationId, updatingNotification); // Guardar referencia
+      activeDownloadNotifications.set(notificationId, updatingNotification);
 
       try {
         const axiosResponse = await axiosInstance(axiosConfig);

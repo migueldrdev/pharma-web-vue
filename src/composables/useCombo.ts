@@ -1,8 +1,7 @@
 // src/composables/useCombo.ts
-// Composable reutilizable para cargar datos de combos (selects) desde la API.
 
-import { Notify } from 'quasar';
 import { useFetchHttp, type IHttpResponse } from '@composables/useFetchHttp';
+import { useNotify } from '@composables/useNotify';
 import { resources } from '@api-resources/GeneralApiResource';
 import type { IComboItem } from '@interfaces/IComboItem';
 import { useComboStore } from '@stores/combos/comboStore';
@@ -24,6 +23,7 @@ type ComboResourceKey =
 export function useCombo() {
   const { fetchHttpResource, loading } = useFetchHttp();
   const comboStore = useComboStore();
+  const { error: notifyError } = useNotify();
 
   /**
    * Función para cargar datos de un combo específico.
@@ -38,10 +38,7 @@ export function useCombo() {
     if (!resources[resourceKey]) {
       const errorMessage = `Recurso de combo '${resourceKey}' no encontrado en la definición de recursos.`;
       console.error(errorMessage);
-      Notify.create({
-        type: 'negative',
-        message: errorMessage,
-      });
+      notifyError(errorMessage);
       return Promise.reject(new Error(errorMessage));
     }
 
@@ -63,10 +60,7 @@ export function useCombo() {
         const errorMessage =
           response.message || `Error desconocido al cargar el combo '${resourceKey}'.`;
         console.error('Error al cargar datos del combo:', errorMessage);
-        Notify.create({
-          type: 'negative',
-          message: errorMessage,
-        });
+        notifyError(errorMessage);
         return Promise.reject(new Error(errorMessage));
       }
 
@@ -82,10 +76,7 @@ export function useCombo() {
       const errorMessage =
         error instanceof Error ? error.message : 'Error desconocido al cargar datos del combo.';
       console.error(`Error en loadComboData para '${resourceKey}':`, error);
-      Notify.create({
-        type: 'negative',
-        message: errorMessage,
-      });
+      notifyError(errorMessage);
       return Promise.reject(new Error(errorMessage));
     } finally {
       loading.value = false;

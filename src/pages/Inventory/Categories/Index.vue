@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
@@ -13,6 +13,7 @@ interface Category {
   name: string;
 }
 const { fetchHttpResource } = useFetchHttp();
+const { success, error } = useNotify();
 const items = ref<Category[]>([]);
 const loading = ref(false);
 const filter = ref('');
@@ -38,7 +39,7 @@ async function load() {
     const payload = res.data as unknown as { data?: Category[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? (res.data as Category[]) : []);
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al cargar' });
+    error('Error al cargar');
   } finally {
     loading.value = false;
   }
@@ -64,15 +65,15 @@ async function save() {
         paramsRoute: [String(current.value.id)],
         data: { name: formName.value },
       });
-      Notify.create({ type: 'positive', message: 'Categoría actualizada' });
+      success('Categoría actualizada');
     } else {
       await fetchHttpResource({ ...resources.createCategory, data: { name: formName.value } });
-      Notify.create({ type: 'positive', message: 'Categoría creada' });
+      success('Categoría creada');
     }
     showDialog.value = false;
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al guardar' });
+    error('Error al guardar');
   }
 }
 
@@ -87,10 +88,10 @@ async function onDelete() {
       ...resources.deleteCategory,
       paramsRoute: [String(deleting.value.id)],
     });
-    Notify.create({ type: 'positive', message: 'Eliminada' });
+    success('Eliminada');
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al eliminar' });
+    error('Error al eliminar');
   } finally {
     showDelete.value = false;
   }

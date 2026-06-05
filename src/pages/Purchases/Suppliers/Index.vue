@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Notify } from 'quasar';
+import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
@@ -10,6 +10,7 @@ import type { ISupplier } from '../interfaces/IPurchase';
 defineOptions({ name: 'SuppliersPage' });
 
 const { fetchHttpResource } = useFetchHttp();
+const { success, error } = useNotify();
 const items = ref<ISupplier[]>([]);
 const loading = ref(false);
 const filter = ref('');
@@ -37,7 +38,7 @@ async function load() {
     const payload = res.data as unknown as { data?: ISupplier[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? res.data : []);
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al cargar' });
+    error('Error al cargar');
   } finally {
     loading.value = false;
   }
@@ -62,18 +63,18 @@ async function save() {
         ...supplierResources.update(current.value.id),
         data: form.value as unknown as Record<string, unknown>,
       });
-      Notify.create({ type: 'positive', message: 'Proveedor actualizado' });
+      success('Proveedor actualizado');
     } else {
       await fetchHttpResource({
         ...supplierResources.create,
         data: form.value as unknown as Record<string, unknown>,
       });
-      Notify.create({ type: 'positive', message: 'Proveedor creado' });
+      success('Proveedor creado');
     }
     showDialog.value = false;
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al guardar' });
+    error('Error al guardar');
   }
 }
 
@@ -85,10 +86,10 @@ async function onDelete() {
   if (!deleting.value) return;
   try {
     await fetchHttpResource(supplierResources.delete(deleting.value.id));
-    Notify.create({ type: 'positive', message: 'Eliminado' });
+    success('Eliminado');
     await load();
   } catch {
-    Notify.create({ type: 'negative', message: 'Error al eliminar' });
+    error('Error al eliminar');
   } finally {
     showDelete.value = false;
   }

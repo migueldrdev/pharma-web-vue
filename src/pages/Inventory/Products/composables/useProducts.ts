@@ -1,11 +1,13 @@
 import { ref, computed, onMounted } from 'vue';
-import { Notify, Loading } from 'quasar';
+import { Loading } from 'quasar';
 import { useFetchHttp, type IHttpResponse } from '@composables/useFetchHttp';
 import { productResources } from '../api-resource/productResource';
+import { useNotify } from '@composables/useNotify';
 import type { IProduct, IProductFilters, IProductPagination } from '../interfaces/IProduct';
 
 export function useProducts() {
   const { fetchHttpResource } = useFetchHttp();
+  const { success, error } = useNotify();
 
   const products = ref<IProduct[]>([]);
   const loading = ref(false);
@@ -54,7 +56,7 @@ export function useProducts() {
         pagination.value.rowsNumber = payload?.total ?? 0;
       }
     } catch (_e: unknown) {
-      Notify.create({ type: 'negative', message: 'Error al cargar productos' });
+      error('Error al cargar productos');
     } finally {
       loading.value = false;
     }
@@ -63,10 +65,10 @@ export function useProducts() {
   async function deleteProduct(id: number) {
     try {
       await fetchHttpResource(productResources.delete(id));
-      Notify.create({ type: 'positive', message: 'Producto eliminado' });
+      success('Producto eliminado');
       await loadProducts();
     } catch {
-      Notify.create({ type: 'negative', message: 'Error al eliminar' });
+      error('Error al eliminar');
     }
   }
 
@@ -77,10 +79,10 @@ export function useProducts() {
         await fetchHttpResource(productResources.delete(p.id));
       }
       selectedProducts.value = [];
-      Notify.create({ type: 'positive', message: 'Productos eliminados' });
+      success('Productos eliminados');
       await loadProducts();
     } catch {
-      Notify.create({ type: 'negative', message: 'Error al eliminar' });
+      error('Error al eliminar');
     } finally {
       Loading.hide();
     }
