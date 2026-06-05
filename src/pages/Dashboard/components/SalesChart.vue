@@ -17,7 +17,10 @@ const chartOptions = computed(() => ({
   xAxis: { categories: props.categories },
   yAxis: { title: { text: 'Ventas (S/)' } },
   colors: ['#00B4A6', '#FF6B6B'],
-  series: salesChartSeries(props.data, props.data.map((d) => d * 1.2)),
+  series: salesChartSeries(
+    props.data,
+    props.data.map((d) => d * 1.2),
+  ),
   plotOptions: {
     line: { dataLabels: { enabled: true, format: 'S/ {y}' } },
   },

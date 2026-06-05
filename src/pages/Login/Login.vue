@@ -1,7 +1,7 @@
 <template>
   <div class="row items-center justify-center login-page">
-    <div class="col-11 col-sm-8 col-md-5 col-lg-4 col-xl-3">
-      <q-card flat bordered class="login-card">
+    <div class="col-11 col-sm-8 col-md-4 col-lg-3 col-xl-3">
+      <q-card class="shadow-4 rounded-borders">
         <q-card-section class="text-center bg-primary text-white q-py-lg">
           <q-avatar size="72px" color="white" text-color="primary" class="q-mb-sm">
             <q-icon name="local_pharmacy" size="40px" />
@@ -38,9 +38,7 @@
       </q-card>
 
       <div class="text-center q-mt-md">
-        <p class="text-caption text-grey-6">
-          &copy; 2026 PharmaCare. Sistema seguro y confiable.
-        </p>
+        <p class="text-caption text-grey-1">&copy; 2026 PharmaCare. Sistema seguro y confiable.</p>
       </div>
     </div>
   </div>
@@ -72,12 +70,7 @@ async function onSubmit(email: string, password: string) {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
-}
-
-.login-card {
-  border-radius: 16px;
-  overflow: hidden;
+  background: linear-gradient(135deg, $primary 20%, $secondary 30%, $primary-dark 50%);
 }
 
 .feature-box {

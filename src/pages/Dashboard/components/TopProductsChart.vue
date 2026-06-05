@@ -16,7 +16,10 @@ const chartOptions = computed(() => ({
   xAxis: { categories: props.data.map(([name]) => name) },
   yAxis: { title: { text: 'Unidades' } },
   colors: ['#FF9500'],
-  series: barChartSeries('Vendidos', props.data.map(([, count]) => count)),
+  series: barChartSeries(
+    'Vendidos',
+    props.data.map(([, count]) => count),
+  ),
   accessibility: { enabled: false },
 }));
 </script>
@@ -32,6 +35,7 @@ const chartOptions = computed(() => ({
         <q-spinner color="accent" size="40px" />
       </div>
       <div v-else-if="!hasData" class="flex flex-center text-grey-6" style="height: 280px">
+        {{ props }}
         Sin datos disponibles
       </div>
       <HcChart v-else :options="chartOptions" />

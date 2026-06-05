@@ -1,15 +1,13 @@
 import { Notify } from 'quasar'
 import type { QNotifyCreateOptions } from 'quasar'
 
-type NotifyPosition = QNotifyCreateOptions['position']
-
 interface NotifyExtraOptions {
   caption?: string
   html?: boolean
   timeout?: number
-  position?: NotifyPosition
+  position?: QNotifyCreateOptions['position']
   group?: string | false
-  actions?: { label: string; color?: string; flat?: boolean; handler: () => void }[]
+  actions?: QNotifyCreateOptions['actions']
 }
 
 export function useNotify() {
@@ -18,7 +16,7 @@ export function useNotify() {
       type: 'success',
       message,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function error(message: string, opts: NotifyExtraOptions = {}): void {
@@ -27,7 +25,7 @@ export function useNotify() {
       message,
       timeout: opts.timeout ?? 5000,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function warning(message: string, opts: NotifyExtraOptions = {}): void {
@@ -35,7 +33,7 @@ export function useNotify() {
       type: 'warning',
       message,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function info(message: string, opts: NotifyExtraOptions = {}): void {
@@ -43,7 +41,7 @@ export function useNotify() {
       type: 'info',
       message,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function question(message: string, opts: NotifyExtraOptions = {}): void {
@@ -52,7 +50,7 @@ export function useNotify() {
       message,
       timeout: 0,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function critical(message: string, opts: NotifyExtraOptions = {}): void {
@@ -61,7 +59,7 @@ export function useNotify() {
       message,
       timeout: opts.timeout ?? 6000,
       ...opts,
-    })
+    } as QNotifyCreateOptions)
   }
 
   function loading(message: string = 'Cargando...') {

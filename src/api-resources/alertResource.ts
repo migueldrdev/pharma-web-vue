@@ -1,4 +1,4 @@
-import { HttpMethods } from './GeneralApiResource'
+import { HttpMethods } from '@/composables/useFetchHttp'
 
 const BASE = '/alerts'
 const STOCK = '/stock-alerts'

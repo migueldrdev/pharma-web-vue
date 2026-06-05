@@ -53,7 +53,7 @@ export function useDialog() {
           flat: true,
           rounded: true,
         },
-      })
+      } as QDialogOptions)
         .onOk((data?: unknown) => resolve({ ok: true, data }))
         .onCancel(() => resolve({ ok: false }))
         .onDismiss(() => resolve({ ok: false }))
@@ -78,7 +78,7 @@ export function useDialog() {
           rounded: true,
         },
         cancel: false,
-      })
+      } as QDialogOptions)
         .onOk(() => resolve())
         .onDismiss(() => resolve())
     })
@@ -134,7 +134,7 @@ export function useDialog() {
           flat: true,
           rounded: true,
         },
-      })
+      } as QDialogOptions)
         .onOk(() => resolve(true))
         .onCancel(() => resolve(false))
         .onDismiss(() => resolve(false))

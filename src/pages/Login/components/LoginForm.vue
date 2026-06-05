@@ -12,7 +12,11 @@ const password = ref('');
 const isPwd = ref(true);
 const loading = ref(false);
 
-defineExpose({ setLoading: (val: boolean) => { loading.value = val; } });
+defineExpose({
+  setLoading: (val: boolean) => {
+    loading.value = val;
+  },
+});
 
 function handleSubmit() {
   if (email.value && password.value) {
@@ -29,7 +33,10 @@ function handleSubmit() {
       label="Correo electrónico"
       type="email"
       lazy-rules
-      :rules="[(val: string) => !!val || 'El correo es requerido']"
+      :rules="[
+        (val: string) => !!val || 'El correo es requerido',
+        (val: string) => /.+@.+\..+/.test(val) || 'Correo no válido',
+      ]"
       :disable="loading"
     >
       <template #prepend>
