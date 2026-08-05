@@ -200,22 +200,23 @@ async function saveRole(): Promise<void> {
   if (res.success) {
     success(editingRole.value ? 'Rol actualizado' : 'Rol creado')
     showRoleDialog.value = false
-    loadRoles()
+    void loadRoles()
   }
 }
 
 async function handleDeleteRole(role: Record<string, unknown>): Promise<void> {
-  const confirmed = await confirmDelete(`el rol "${role.name}"`)
+  const roleName = typeof role.name === 'string' ? role.name : ''
+  const confirmed = await confirmDelete(`el rol "${roleName}"`)
   if (!confirmed) return
   const res = await fetchHttpResource(roleResources.delete(role.id as number))
   if (res.success) {
     success('Rol eliminado')
-    loadRoles()
+    void loadRoles()
   }
 }
 
 onMounted(() => {
-  loadRoles()
-  loadPermissions()
+  void loadRoles()
+  void loadPermissions()
 })
 </script>

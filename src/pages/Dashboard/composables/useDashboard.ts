@@ -35,7 +35,7 @@ export function useDashboard() {
   const { warning } = useNotify();
   const loading = ref(false);
 
-  const data = ref<DashboardData | null>(null);
+  const data = ref<DashboardData>();
 
   const kpis = computed<IDashboardKPI[]>(() => {
     if (!data.value) return [];
@@ -122,8 +122,9 @@ export function useDashboard() {
 
   const salesTrend = computed(() => data.value?.sales_trend ?? [0, 0, 0, 0]);
 
-  const topProductsNames: [string, number][] =
-    data.value?.top_categories.map((c) => [c.name, c.y] as [string, number]) ?? [];
+  const topProductsNames = computed<[string, number][]>(
+    () => data.value?.top_categories.map((c): [string, number] => [c.name, c.y]) ?? [],
+  );
 
   async function refreshData() {
     loading.value = true;
@@ -134,7 +135,7 @@ export function useDashboard() {
       });
       if (res.success) {
         data.value = res.data;
-        console.log('--->', data.value);
+        console.log('data --> ', data.value);
       }
     } catch {
       if (!data.value) {

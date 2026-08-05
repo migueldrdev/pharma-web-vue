@@ -8,10 +8,11 @@ const props = defineProps<{
   loading?: boolean;
 }>();
 
-const hasData = computed(() => props.data.length > 0);
+const hasData = computed(() => props.data?.length > 0);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
+  title: { text: '' },
   chart: { ...baseChartOptions(280).chart, type: 'bar' },
   xAxis: { categories: props.data.map(([name]) => name) },
   yAxis: { title: { text: 'Unidades' } },
@@ -35,7 +36,6 @@ const chartOptions = computed(() => ({
         <q-spinner color="accent" size="40px" />
       </div>
       <div v-else-if="!hasData" class="flex flex-center text-grey-6" style="height: 280px">
-        {{ props }}
         Sin datos disponibles
       </div>
       <HcChart v-else :options="chartOptions" />

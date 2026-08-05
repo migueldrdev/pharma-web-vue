@@ -9,27 +9,31 @@
         <q-btn round flat icon="refresh" color="primary" :loading="loading" @click="refreshData" />
       </div>
     </div>
-
     <KpiGrid :kpis="kpis" :loading="loading" class="q-mb-lg" />
 
     <div class="row q-col-gutter-lg q-mb-lg">
       <div class="col-12 col-md-6">
-        <SalesChart :data="[...salesTrend]" :categories="['Sem 1','Sem 2','Sem 3','Sem 4']" :loading="loading" />
+        {{ salesTrend }}
+        <SalesChart
+          :data="[...salesTrend]"
+          :categories="['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']"
+          :loading="loading"
+        />
       </div>
       <div class="col-12 col-md-6">
-        <TopProductsChart :data="topProductsNames" :loading="loading" />
+        <TopProductsChart :data="topProductsNames.value" :loading="loading" />
       </div>
     </div>
 
     <div class="row q-col-gutter-lg q-mb-lg">
       <div class="col-12 col-md-6">
-        <InventoryPieChart :data="topProductsNames" :loading="loading" />
+        <InventoryPieChart :data="topProductsNames.value" :loading="loading" />
       </div>
       <div class="col-12 col-md-6">
         <CashFlowChart
           :income-data="salesTrend"
           :expense-data="salesTrend.map((d) => d * 0.3)"
-          :categories="['Sem 1','Sem 2','Sem 3','Sem 4']"
+          :categories="['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']"
           :loading="loading"
         />
       </div>
@@ -62,10 +66,8 @@ import { useDashboard } from './composables/useDashboard';
 
 defineOptions({ name: 'DashboardPage' });
 
-const {
-  loading, kpis, recentSales, lowStockProducts,
-  salesTrend, topProductsNames, refreshData,
-} = useDashboard();
+const { loading, kpis, recentSales, lowStockProducts, salesTrend, topProductsNames, refreshData } =
+  useDashboard();
 
 onMounted(() => {
   void refreshData();

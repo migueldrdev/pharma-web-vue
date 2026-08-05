@@ -26,13 +26,35 @@
                 />
               </div>
               <div v-if="currentProduct" class="col-md-3 col-xs-6">
-                <q-input v-model.number="currentQuantity" type="number" label="Cantidad" outlined dense min="1" />
+                <q-input
+                  v-model.number="currentQuantity"
+                  type="number"
+                  label="Cantidad"
+                  outlined
+                  dense
+                  min="1"
+                />
               </div>
               <div v-if="currentProduct" class="col-md-2 col-xs-6">
-                <q-input v-model.number="currentPrice" type="number" label="Precio" outlined dense min="0" prefix="S/" />
+                <q-input
+                  v-model.number="currentPrice"
+                  type="number"
+                  label="Precio"
+                  outlined
+                  dense
+                  min="0"
+                  prefix="S/"
+                />
               </div>
               <div v-if="currentProduct" class="col-md-2 col-xs-12">
-                <q-btn color="primary" icon="add" label="Agregar" @click="addProductToCart" unelevated class="full-width" />
+                <q-btn
+                  color="primary"
+                  icon="add"
+                  label="Agregar"
+                  @click="addProductToCart"
+                  unelevated
+                  class="full-width"
+                />
               </div>
             </div>
 
@@ -47,7 +69,14 @@
             >
               <template #body-cell-actions="props">
                 <q-td :props="props">
-                  <q-btn icon="delete" size="sm" flat round color="negative" @click="removeFromCart(props.row)" />
+                  <q-btn
+                    icon="delete"
+                    size="sm"
+                    flat
+                    round
+                    color="negative"
+                    @click="removeFromCart(props.row)"
+                  />
                 </q-td>
               </template>
             </q-table>
@@ -80,7 +109,13 @@
               map-options
               class="q-mb-sm"
             />
-            <q-input v-model="saleData.customer_name" label="Nombre cliente" outlined dense class="q-mb-sm" />
+            <q-input
+              v-model="saleData.customer_name"
+              label="Nombre cliente"
+              outlined
+              dense
+              class="q-mb-sm"
+            />
             <q-select
               v-model="saleData.document_type_id"
               :options="docTypeOptions"
@@ -92,7 +127,13 @@
               map-options
               class="q-mb-sm"
             />
-            <q-input v-model="saleData.document_number" label="N° Documento" outlined dense class="q-mb-md" />
+            <q-input
+              v-model="saleData.document_number"
+              label="N° Documento"
+              outlined
+              dense
+              class="q-mb-md"
+            />
 
             <q-btn
               color="primary"
@@ -119,11 +160,13 @@ import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
+import { useNotify } from '@composables/useNotify';
 import type { IComboItem } from '@interfaces/IComboItem';
 
 const router = useRouter();
 const { fetchHttpResource } = useFetchHttp();
 const { loadComboData } = useCombo();
+const { warning, success } = useNotify();
 const $q = useQuasar();
 
 interface CartItem {
@@ -157,8 +200,18 @@ const cartTotal = computed(() => cart.value.reduce((sum, item) => sum + item.sub
 const cartColumns = [
   { name: 'name', label: 'Producto', field: 'name', align: 'left' as const },
   { name: 'quantity', label: 'Cant.', field: 'quantity', align: 'center' as const },
-  { name: 'price', label: 'Precio U.', field: (row: CartItem) => `S/ ${row.price.toFixed(2)}`, align: 'right' as const },
-  { name: 'subtotal', label: 'Subtotal', field: (row: CartItem) => `S/ ${row.subtotal.toFixed(2)}`, align: 'right' as const },
+  {
+    name: 'price',
+    label: 'Precio U.',
+    field: (row: CartItem) => `S/ ${row.price.toFixed(2)}`,
+    align: 'right' as const,
+  },
+  {
+    name: 'subtotal',
+    label: 'Subtotal',
+    field: (row: CartItem) => `S/ ${row.subtotal.toFixed(2)}`,
+    align: 'right' as const,
+  },
   { name: 'actions', label: '', field: 'actions', align: 'center' as const },
 ];
 
@@ -169,9 +222,7 @@ function filterProducts(val: string, update: (_fn: () => void) => void) {
       return;
     }
     const needle = val.toLowerCase();
-    productOptions.value = allProducts.value.filter(
-      (p) => p.label.toLowerCase().includes(needle),
-    );
+    productOptions.value = allProducts.value.filter((p) => p.label.toLowerCase().includes(needle));
   });
 }
 
@@ -206,7 +257,7 @@ function removeFromCart(item: CartItem) {
 
 async function submitSale() {
   if (cart.value.length === 0) {
-    $q.notify({ type: 'warning', message: 'Agregue al menos un producto' });
+    warning('Agregue al menos un producto', { position: 'top-right', timeout: 2000 });
     return;
   }
 
@@ -233,7 +284,7 @@ async function submitSale() {
     });
 
     if (response.success) {
-      $q.notify({ type: 'positive', message: 'Venta registrada exitosamente' });
+      success('Venta registrada exitosamente', { position: 'top-right', timeout: 2000 });
       void router.push({ name: 'sales' });
     } else {
       $q.notify({ type: 'negative', message: response.message || 'Error al registrar venta' });
@@ -247,12 +298,25 @@ async function submitSale() {
 
 onMounted(async () => {
   try {
-    allProducts.value = await loadComboData('productsCombo', false);
+    // 1. Ejecutamos todas las peticiones en paralelo correctamente dentro de un array [...]
+    const [products, clients, docTypes] = await Promise.all([
+      loadComboData('productsCombo', false),
+      loadComboData('clientsCombo', false),
+      loadComboData('documentTypesCombo', false),
+    ]);
+
+    // 2. Una vez que las promesas se resuelven, asignamos los valores de forma segura
+    allProducts.value = products;
+    clientOptions.value = clients;
+    docTypeOptions.value = docTypes;
+
+    // 3. Ahora sí, allProducts ya tiene datos para poder hacer el slice
     productOptions.value = allProducts.value.slice(0, 20);
-    clientOptions.value = await loadComboData('clientsCombo', false);
-    docTypeOptions.value = await loadComboData('documentTypesCombo', false);
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error al cargar datos' });
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar datos',
+    });
   }
 });
 </script>

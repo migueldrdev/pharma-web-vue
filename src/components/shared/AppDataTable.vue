@@ -45,7 +45,7 @@ const emit = defineEmits<{
 }>()
 
 const { confirmDelete } = useDialog()
-const { success: notifySuccess } = useNotify()
+const { success } = useNotify()
 
 const rows = ref<TRow[]>([])
 const loading = ref<boolean>(false)
@@ -132,13 +132,15 @@ function refresh(): void {
 }
 
 function loadData(): void {
-  onRequest({ pagination: pagination.value })
+  void onRequest({ pagination: pagination.value })
 }
 
 async function handleAction(action: AppDataTableAction<TRow>, row: TRow): Promise<void> {
   if (action.name === 'delete') {
+    const rawLabel = getFieldValue(row, 'name') ?? getFieldValue(row, 'id') ?? ''
+    const identifier = typeof rawLabel === 'string' || typeof rawLabel === 'number' ? String(rawLabel) : ''
     const confirmed = await confirmDelete(
-      `el registro "${String(getFieldValue(row, 'name') || getFieldValue(row, 'id') || '')}"`,
+      `el registro "${identifier}"`,
     )
     if (!confirmed) return
   }

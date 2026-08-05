@@ -1,69 +1,62 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAlerts } from '@/composables/useAlerts'
-import { useNotify } from '@/composables/useNotify'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAlerts } from '@/composables/useAlerts';
+import { useNotify } from '@/composables/useNotify';
 
-defineOptions({ name: 'HeaderNotifications' })
+defineOptions({ name: 'HeaderNotifications' });
 
-const router = useRouter()
-const { success } = useNotify()
-const {
-  alerts,
-  loading,
-  unreadCount,
-  criticalCount,
-  markAsRead,
-  markAllAsRead,
-  getAlertRoute,
-} = useAlerts()
+const router = useRouter();
+const { success } = useNotify();
+const { alerts, loading, unreadCount, criticalCount, markAsRead, markAllAsRead, getAlertRoute } =
+  useAlerts();
 
-const hasCritical = computed<boolean>(() => criticalCount.value > 0)
-const badgeColor = computed<string>(() => (hasCritical.value ? 'deep-orange' : 'red'))
+const hasCritical = computed<boolean>(() => criticalCount.value > 0);
+const badgeColor = computed<string>(() => (hasCritical.value ? 'deep-orange' : 'red'));
 
 function getAlertIcon(type: string, severity: string): string {
-  if (type === 'low_stock') return severity === 'critical' ? 'block' : 'warning'
-  if (type === 'expiry') return severity === 'critical' ? 'event_busy' : 'schedule'
-  return 'notifications'
+  if (type === 'low_stock') return severity === 'critical' ? 'block' : 'warning';
+  if (type === 'expiry') return severity === 'critical' ? 'event_busy' : 'schedule';
+  return 'notifications';
 }
 
 function getAlertColor(type: string, severity: string): string {
-  if (severity === 'critical') return 'deep-orange'
-  if (severity === 'high') return 'negative'
-  if (severity === 'medium') return 'warning'
-  if (type === 'low_stock') return 'warning'
-  if (type === 'expiry') return 'info'
-  return 'primary'
+  if (severity === 'critical') return 'deep-orange';
+  if (severity === 'high') return 'negative';
+  if (severity === 'medium') return 'warning';
+  if (type === 'low_stock') return 'warning';
+  if (type === 'expiry') return 'info';
+  return 'primary';
 }
 
 function formatTime(dateStr: string | undefined): string {
-  if (!dateStr) return ''
-  const now = new Date()
-  const date = new Date(dateStr)
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
+  if (!dateStr) return '';
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
 
-  if (diffMins < 1) return 'Ahora'
-  if (diffMins < 60) return `Hace ${diffMins} min`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `Hace ${diffHours}h`
-  const diffDays = Math.floor(diffHours / 24)
-  return `Hace ${diffDays}d`
+  if (diffMins < 1) return 'Ahora';
+  if (diffMins < 60) return `Hace ${diffMins} min`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Hace ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `Hace ${diffDays}d`;
 }
 
 function dismissAlert(id: number | string): void {
-  markAsRead(id)
+  markAsRead(id);
 }
 
 function onNotificationClick(alertItem: (typeof alerts.value)[0]): void {
-  markAsRead(alertItem.id)
-  const route = getAlertRoute(alertItem)
-  void router.push(route)
+  markAsRead(alertItem.id);
+  const route = getAlertRoute(alertItem);
+  void router.push(route);
 }
 
 function handleMarkAllRead(): void {
-  markAllAsRead()
-  success('Todas las notificaciones marcadas como leídas')
+  markAllAsRead();
+  success('Todas las notificaciones marcadas como leídas');
 }
 </script>
 
@@ -76,17 +69,12 @@ function handleMarkAllRead(): void {
       rounded
       :label="unreadCount > 99 ? '99+' : String(unreadCount)"
     />
-    <q-menu
-      transition-show="scale"
-      transition-hide="scale"
-      anchor="bottom right"
-      self="top right"
-    >
+    <q-menu transition-show="scale" transition-hide="scale" anchor="bottom right" self="top right">
       <div style="width: 360px; max-height: 480px">
         <!-- Header -->
         <div
           class="row items-center justify-between q-px-md q-py-sm"
-          style="border-bottom: 1px solid rgba(0,0,0,0.08)"
+          style="border-bottom: 1px solid rgba(0, 0, 0, 0.08)"
         >
           <div class="row items-center q-gutter-sm">
             <strong class="text-h6">Notificaciones</strong>
@@ -122,12 +110,7 @@ function handleMarkAllRead(): void {
         </div>
 
         <!-- Alerts list with swipe -->
-        <q-virtual-scroll
-          v-else
-          :items="alerts"
-          style="max-height: 420px"
-          separator
-        >
+        <q-virtual-scroll v-else :items="alerts" style="max-height: 420px" separator>
           <template #default="{ item }">
             <q-item
               :key="item.id"
@@ -146,10 +129,7 @@ function handleMarkAllRead(): void {
               </q-item-section>
 
               <q-item-section>
-                <q-item-label
-                  :class="{ 'text-weight-bold': !item.read }"
-                  :lines="2"
-                >
+                <q-item-label :class="{ 'text-weight-bold': !item.read }" :lines="2">
                   {{ item.product_name || item.batch_number || 'Alerta' }}
                 </q-item-label>
                 <q-item-label caption :lines="2">{{ item.message }}</q-item-label>
@@ -167,7 +147,7 @@ function handleMarkAllRead(): void {
               <q-item-section side>
                 <q-badge
                   :color="getAlertColor(item.type, item.severity)"
-                  :label="item.severity === 'critical' ? '!' : (item.severity === 'high' ? '!' : '')"
+                  :label="item.severity === 'critical' ? '!' : item.severity === 'high' ? '!' : ''"
                   rounded
                   size="sm"
                   v-if="item.severity === 'critical' || item.severity === 'high'"
@@ -188,7 +168,7 @@ function handleMarkAllRead(): void {
         <div
           v-if="alerts.length > 0"
           class="text-center q-py-sm"
-          style="border-top: 1px solid rgba(0,0,0,0.08)"
+          style="border-top: 1px solid rgba(0, 0, 0, 0.08)"
         >
           <q-btn
             flat

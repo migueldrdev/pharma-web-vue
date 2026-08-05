@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Screen } from 'quasar';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
 
 defineOptions({ name: 'SidebarMenuList' });
@@ -40,9 +39,8 @@ function onItemClick(route?: string) {
         :icon="item.icon"
         :label="mini ? '' : item.label"
         :default-opened="item.defaultOpen"
-        :class="{
-          'text-primary rounded-borders': item.children.some((c) => c.route === activeRoute),
-        }"
+        :header-class="item.children.some((c) => c.route === activeRoute) ? 'text-primary' : ''"
+        class="rounded-borders"
         @after-show="onExpand"
       >
         <template v-if="mini" #header>
@@ -56,6 +54,7 @@ function onItemClick(route?: string) {
           v-permission="child.permission"
           clickable
           :to="child.route"
+          exact
           :class="{ 'text-primary text-weight-medium': activeRoute === child.route }"
           class="q-ml-md q-mr-sm rounded-borders"
           @click="emit('navigate', child.route ?? '/')"
@@ -79,6 +78,7 @@ function onItemClick(route?: string) {
         v-permission="item.permission"
         clickable
         :to="item.route"
+        exact
         class="rounded-borders"
         :class="{ 'text-primary text-weight-medium': activeRoute === item.route }"
         @click="onItemClick(item.route ?? '/')"

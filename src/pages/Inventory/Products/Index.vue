@@ -159,7 +159,7 @@ const {
 } = useProducts();
 
 const { fetchHttpResource } = useFetchHttp();
-const { success: notifySuccess, error: notifyError } = useNotify();
+const { success, error } = useNotify();
 const { loadComboData } = useCombo();
 const comboStore = useComboStore();
 
@@ -205,11 +205,11 @@ async function handleRegenerateAI(): Promise<void> {
   try {
     const res = await fetchHttpResource(predictionResources.regenerate)
     if (res.success) {
-      notifySuccess('Predicciones AI regeneradas correctamente')
+      success('Predicciones AI regeneradas correctamente')
       await loadProducts()
     }
   } catch {
-    notifyError('Error al regenerar predicciones')
+    error('Error al regenerar predicciones')
   } finally {
     regenerating.value = false
   }

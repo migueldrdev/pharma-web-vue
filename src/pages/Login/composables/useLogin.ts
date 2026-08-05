@@ -7,7 +7,7 @@ export function useLogin() {
   const authStore = useAuthStore();
   const router = useRouter();
   const loading = ref(false);
-  const { error: notifyError } = useNotify();
+  const { error } = useNotify();
 
   async function handleLogin(email: string, password: string) {
     loading.value = true;
@@ -15,7 +15,7 @@ export function useLogin() {
       await authStore.login(email, password);
       await router.push('/');
     } catch (_e: unknown) {
-      notifyError('Credenciales inválidas');
+      error('Credenciales inválidas');
     } finally {
       loading.value = false;
     }

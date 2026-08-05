@@ -23,7 +23,7 @@ type ComboResourceKey =
 export function useCombo() {
   const { fetchHttpResource, loading } = useFetchHttp();
   const comboStore = useComboStore();
-  const { error: notifyError } = useNotify();
+  const { error } = useNotify();
 
   /**
    * Función para cargar datos de un combo específico.
@@ -38,7 +38,7 @@ export function useCombo() {
     if (!resources[resourceKey]) {
       const errorMessage = `Recurso de combo '${resourceKey}' no encontrado en la definición de recursos.`;
       console.error(errorMessage);
-      notifyError(errorMessage);
+      error(errorMessage);
       return Promise.reject(new Error(errorMessage));
     }
 
@@ -60,7 +60,7 @@ export function useCombo() {
         const errorMessage =
           response.message || `Error desconocido al cargar el combo '${resourceKey}'.`;
         console.error('Error al cargar datos del combo:', errorMessage);
-        notifyError(errorMessage);
+        error(errorMessage);
         return Promise.reject(new Error(errorMessage));
       }
 
@@ -72,11 +72,11 @@ export function useCombo() {
       } else {
         return response.data;
       }
-    } catch (error: unknown) {
+    } catch (err: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido al cargar datos del combo.';
-      console.error(`Error en loadComboData para '${resourceKey}':`, error);
-      notifyError(errorMessage);
+        err instanceof Error ? err.message : 'Error desconocido al cargar datos del combo.';
+      console.error(`Error en loadComboData para '${resourceKey}':`, err);
+      error(errorMessage);
       return Promise.reject(new Error(errorMessage));
     } finally {
       loading.value = false;

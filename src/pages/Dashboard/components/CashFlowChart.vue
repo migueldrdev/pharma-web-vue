@@ -14,6 +14,7 @@ const hasData = computed(() => props.incomeData.length > 0);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
+  title: { text: '' },
   chart: { ...baseChartOptions(280).chart, type: 'column' },
   xAxis: { categories: props.categories },
   yAxis: { title: { text: 'Monto (S/)' } },

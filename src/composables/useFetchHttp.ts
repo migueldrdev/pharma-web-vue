@@ -6,8 +6,9 @@ import axios, {
   CancelTokenSource,
   AxiosInstance,
 } from 'axios';
-import { Notify, QSpinnerHourglass } from 'quasar';
+import { QSpinnerHourglass } from 'quasar';
 import { api } from '@/boot/axios';
+import { useNotify } from 'src/composables/useNotify';
 
 import type { QNotifyCreateOptions } from 'quasar';
 
@@ -53,9 +54,7 @@ export interface IHttpResponse<TData = unknown> {
 
 export function useFetchHttp() {
   const loading: Ref<boolean> = ref(false);
-  // `cancelTokenSource` es para cancelar peticiones, pero la API de Axios
-  // para esto ha cambiado a `AbortController`. Lo mantendré si es lo que usas,
-  // pero `AbortController` es la forma moderna.
+  const { create: notifyCreate } = useNotify();
   let cancelTokenSource: CancelTokenSource | null = null;
 
   const showLoad = () => (loading.value = true);
@@ -157,7 +156,7 @@ export function useFetchHttp() {
 
     if (options.download) {
       const notificationId = `download-${Date.now()}`;
-      const updatingNotification = Notify.create({
+      const updatingNotification = notifyCreate({
         group: false,
         spinner: QSpinnerHourglass,
         type: 'ongoing',

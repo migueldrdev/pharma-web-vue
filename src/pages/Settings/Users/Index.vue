@@ -179,22 +179,23 @@ async function onSubmit(): Promise<void> {
   if (res.success) {
     success(isEditing.value ? 'Usuario actualizado' : 'Usuario creado')
     showDialog.value = false
-    loadUsers()
+    void loadUsers()
   }
 }
 
 async function handleDelete(row: UserRow): Promise<void> {
-  const confirmed = await confirmDelete(`el usuario "${row.name}"`)
+  const userName = typeof row.name === 'string' ? row.name : ''
+  const confirmed = await confirmDelete(`el usuario "${userName}"`)
   if (!confirmed) return
   const res = await fetchHttpResource(userResources.delete(row.id as number))
   if (res.success) {
     success('Usuario eliminado')
-    loadUsers()
+    void loadUsers()
   }
 }
 
 onMounted(() => {
-  loadUsers()
-  loadRoles()
+  void loadUsers()
+  void loadRoles()
 })
 </script>

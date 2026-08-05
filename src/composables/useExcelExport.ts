@@ -154,7 +154,11 @@ export function useExcelExport() {
       const colKey = column.key
       column.eachCell?.({ includeEmpty: false }, (cell) => {
         const val = cell.value
-        const len = typeof val === 'string' ? val.length : String(val ?? '').length
+        const len = typeof val === 'string'
+          ? val.length
+          : typeof val === 'number' || typeof val === 'boolean'
+            ? String(val).length
+            : 0
         if (len > maxLen) maxLen = len
       })
       if (column.width && maxLen > 0) {

@@ -90,8 +90,8 @@ export function useAlerts() {
 
   function startPolling(intervalMs: number = 60000): void {
     stopPolling()
-    fetchAlerts()
-    pollingInterval.value = setInterval(fetchAlerts, intervalMs)
+    void fetchAlerts()
+    pollingInterval.value = setInterval(() => { void fetchAlerts() }, intervalMs)
   }
 
   function stopPolling(): void {

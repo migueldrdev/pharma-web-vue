@@ -12,6 +12,7 @@ const hasData = computed(() => props.data.length > 0);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
+  title: { text: '' },
   chart: { ...baseChartOptions(280).chart, type: 'pie' },
   colors: ['#00B4A6', '#FF6B6B', '#FF9500', '#6C5CE7', '#A0D911'],
   series: pieChartSeries(props.data.map(([name, y]) => ({ name, y }))),
