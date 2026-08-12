@@ -38,7 +38,7 @@
           leave-active-class="animated fadeOutLeft"
           mode="out-in"
         >
-          <component :is="Component" />
+          <component :is="Component" :key="route.path" />
         </transition>
       </router-view>
     </q-page-container>
@@ -60,6 +60,7 @@ import AppSidebar from './components/AppSidebar.vue';
 import { useMainLayout } from './composables/useMainLayout';
 import { defaultUser } from './data/menuItems';
 import { ILayoutUser } from './interfaces/ILayout.js';
+import { useThemeStore } from '@stores/theme/themeStore';
 
 defineOptions({ name: 'MainLayout' });
 
@@ -106,10 +107,8 @@ async function handleLogout() {
 }
 
 onMounted(async () => {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) {
-    Dark.set(savedTheme === 'dark');
-  }
+  const themeStore = useThemeStore();
+  themeStore.loadTheme();
 
   if (authStore.user) {
     userData.value = {

@@ -1,25 +1,55 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { baseChartOptions, columnChartSeries } from '../charts/chartOptions';
+import { baseChartOptions } from '../charts/chartOptions';
 import HcChart from './HcChart.vue';
+import type { SeriesOptionsType } from 'highcharts';
 
 const props = defineProps<{
-  incomeData: number[];
-  expenseData: number[];
-  categories: string[];
+  labels: string[];
+  salesData: number[];
+  expensesData: number[];
   loading?: boolean;
 }>();
 
-const hasData = computed(() => props.incomeData.length > 0);
+const hasData = computed(() => props.salesData.length > 0);
+
+const profitData = computed(() =>
+  props.salesData.map((sale, i) => {
+    const expense = props.expensesData[i] ?? 0;
+    return parseFloat((sale - expense).toFixed(2));
+  }),
+);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
   title: { text: '' },
   chart: { ...baseChartOptions(280).chart, type: 'column' },
-  xAxis: { categories: props.categories },
-  yAxis: { title: { text: 'Monto (S/)' } },
-  colors: ['#52C41A', '#FF4D4F'],
-  series: columnChartSeries(props.incomeData, props.expenseData),
+  xAxis: {
+    categories: props.labels,
+    labels: { style: { fontSize: '11px' } },
+  },
+  yAxis: {
+    title: { text: 'Monto (S/)' },
+    labels: { format: 'S/ {value}' },
+  },
+  colors: ['#52C41A', '#FF4D4F', '#1890FF'],
+  series: [
+    { name: 'Ingresos', type: 'column', data: props.salesData },
+    { name: 'Gastos', type: 'column', data: props.expensesData },
+    {
+      name: 'Margen',
+      type: 'spline',
+      data: profitData.value,
+      lineWidth: 2,
+      marker: { radius: 4, symbol: 'diamond' },
+      dataLabels: { enabled: true, format: 'S/ {y}' },
+    },
+  ] as SeriesOptionsType[],
+  legend: { enabled: true },
+  tooltip: {
+    shared: true,
+    pointFormat: '{series.name}: <b>S/ {point.y:.2f}</b><br/>',
+  },
   accessibility: { enabled: false },
 }));
 </script>
@@ -28,7 +58,7 @@ const chartOptions = computed(() => ({
   <q-card flat bordered class="chart-card">
     <q-card-section class="row items-center no-wrap">
       <q-icon name="account_balance_wallet" color="positive" size="sm" />
-      <span class="text-subtitle2 q-ml-sm">Flujo de Caja Semanal</span>
+      <span class="text-subtitle2 q-ml-sm">Margen de Ganancia Semanal</span>
     </q-card-section>
     <q-card-section>
       <div v-if="loading" class="flex flex-center" style="height: 280px">

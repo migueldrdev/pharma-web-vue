@@ -5,7 +5,7 @@ import { defaultUser } from '../data/menuItems';
 
 defineOptions({ name: 'HeaderUserMenu' });
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     user?: ILayoutUser;
   }>(),
@@ -23,9 +23,7 @@ const router = useRouter();
 function openProfile() {
   void router.push('/profile');
 }
-function openSettings() {
-  void router.push('/settings');
-}
+
 function changePassword() {
   void router.push('/change-password');
 }

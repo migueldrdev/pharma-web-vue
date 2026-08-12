@@ -7,7 +7,7 @@ import type { ILayoutUser } from '../interfaces/ILayout';
 
 defineOptions({ name: 'AppHeader' });
 
-const props = defineProps<{
+defineProps<{
   user?: ILayoutUser;
 }>();
 

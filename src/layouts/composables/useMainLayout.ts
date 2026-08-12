@@ -5,6 +5,7 @@ import { useNotify } from '@composables/useNotify';
 import type { ILayoutBreadcrumb } from '../interfaces/ILayout';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
 import { defaultMenuItems } from '../data/menuItems';
+import { useThemeStore } from '@stores/theme/themeStore';
 
 export function useMainLayout() {
   const router = useRouter();
@@ -28,9 +29,9 @@ export function useMainLayout() {
   }
 
   function toggleTheme() {
-    Dark.toggle();
-    localStorage.setItem('theme', Dark.isActive ? 'dark' : 'light');
-    info(`Tema ${Dark.isActive ? 'oscuro' : 'claro'} activado`, { position: 'top-right', timeout: 2000 });
+    const themeStore = useThemeStore();
+    themeStore.toggleDarkMode();
+    info(`Tema ${themeStore.isDark ? 'oscuro' : 'claro'} activado`, { position: 'top-right', timeout: 2000 });
   }
 
   function navigateTo(path: string) {

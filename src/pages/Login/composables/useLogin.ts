@@ -14,7 +14,7 @@ export function useLogin() {
     try {
       await authStore.login(email, password);
       await router.push('/');
-    } catch (_e: unknown) {
+    } catch {
       error('Credenciales inválidas');
     } finally {
       loading.value = false;

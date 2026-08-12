@@ -1,45 +1,79 @@
 <template>
-  <div class="row items-center justify-center login-page">
-    <div class="col-11 col-sm-8 col-md-4 col-lg-3 col-xl-3">
-      <q-card class="shadow-4 rounded-borders">
-        <q-card-section class="text-center bg-primary text-white q-py-lg">
-          <q-avatar size="72px" color="white" text-color="primary" class="q-mb-sm">
-            <q-icon name="local_pharmacy" size="40px" />
-          </q-avatar>
-          <h1 class="text-h5 q-ma-none">PharmaCare Pro</h1>
-          <p class="text-caption q-ma-none text-white" style="opacity: 0.8">
-            Sistema de Gestión Farmacéutica
-          </p>
-        </q-card-section>
+  <div class="pharma-login-canvas row window-height window-width items-center justify-center">
+    <!-- Ambient glass circles -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
 
-        <q-card-section class="q-pa-lg">
-          <div class="text-center q-mb-lg">
-            <h2 class="text-h6 q-ma-none">Bienvenido de vuelta</h2>
-            <p class="text-caption text-grey-7 q-ma-none q-mt-xs">
-              Inicia sesión para acceder al sistema
+    <div class="col-12 col-md-10 col-lg-8 col-xl-7 q-pa-md z-top">
+      <q-card class="pharma-card row no-wrap-md wrap-sm overflow-hidden">
+        
+        <!-- Left Side: Branding & Trust -->
+        <div class="col-12 col-md-5 bg-gradient-teal text-white q-pa-xl flex column justify-between brand-section relative-position">
+          <div class="pattern-overlay"></div>
+          
+          <div class="relative-position z-top">
+            <div class="row items-center q-mb-xl">
+              <q-avatar size="56px" color="white" text-color="primary" class="q-mr-md shadow-2">
+                <q-icon name="mdi-pharmacy" size="32px" />
+              </q-avatar>
+              <div>
+                <h1 class="text-h5 text-weight-bold q-ma-none">PharmaCare</h1>
+                <div class="text-subtitle2 opacity-80">Pro Edition</div>
+              </div>
+            </div>
+
+            <div class="q-mt-xl text-body1 text-weight-light lh-lg">
+              Sistema inteligente para la gestión integral de farmacias y boticas.
+            </div>
+          </div>
+
+          <div class="trust-badges q-mt-xl relative-position z-top column q-gutter-y-md">
+            <div class="trust-badge row items-center q-pa-sm rounded-borders">
+              <q-icon name="mdi-point-of-sale" size="sm" class="q-mr-sm" />
+              <span class="text-body2 text-weight-medium">Punto de Venta POS Ultra-rápido</span>
+            </div>
+            <div class="trust-badge row items-center q-pa-sm rounded-borders">
+              <q-icon name="mdi-package-variant-closed" size="sm" class="q-mr-sm" />
+              <span class="text-body2 text-weight-medium">Control de Stock y Vencimientos</span>
+            </div>
+            <div class="trust-badge row items-center q-pa-sm rounded-borders">
+              <q-icon name="mdi-receipt-text-check" size="sm" class="q-mr-sm" />
+              <span class="text-body2 text-weight-medium">Facturación Electrónica</span>
+            </div>
+          </div>
+
+          <div class="relative-position z-top q-mt-xl row items-center text-caption opacity-80">
+            <q-icon name="mdi-shield-check" size="18px" class="q-mr-xs" />
+            Sistema Seguro DIGEMID
+          </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="col-12 col-md-7 q-pa-xl flex column justify-center" style="background-color: var(--surface-card)">
+          <div class="q-mb-xl text-center">
+            <h2 class="text-h4 text-weight-bolder text-dark q-ma-none q-mb-sm">
+              Acceso al Portal
+            </h2>
+            <p class="text-body1 text-grey-6 q-ma-none">
+              Ingresa tus credenciales para continuar
             </p>
           </div>
 
           <LoginForm ref="formRef" @submit="onSubmit" />
-        </q-card-section>
 
-        <q-separator />
-
-        <q-card-section class="q-pa-md bg-grey-1">
-          <div class="row q-col-gutter-sm justify-center">
-            <div class="col-6" v-for="feature in features" :key="feature.label">
-              <div class="feature-box flex items-center justify-center q-pa-sm rounded-borders">
-                <q-icon :name="feature.icon" color="primary" size="xs" class="q-mr-xs" />
-                <span class="text-caption text-grey-8">{{ feature.label }}</span>
-              </div>
+          <div class="q-mt-xl text-center">
+            <div class="q-mb-sm">
+              <q-chip color="blue-1" text-color="blue-8" size="sm" icon="mdi-eye-check">
+                Monitoreo de Lotes Activo
+              </q-chip>
             </div>
+            <p class="text-caption text-grey-5 q-ma-none">
+              &copy; {{ new Date().getFullYear() }} PharmaCare. Todos los derechos reservados.
+            </p>
           </div>
-        </q-card-section>
-      </q-card>
+        </div>
 
-      <div class="text-center q-mt-md">
-        <p class="text-caption text-grey-1">&copy; 2026 PharmaCare. Sistema seguro y confiable.</p>
-      </div>
+      </q-card>
     </div>
   </div>
 </template>
@@ -51,35 +85,91 @@ import { useLogin } from './composables/useLogin';
 
 defineOptions({ name: 'LoginPage' });
 
-const { loading, handleLogin } = useLogin();
+const { handleLogin } = useLogin();
 const formRef = ref<{ setLoading: (val: boolean) => void } | null>(null);
 
-const features = [
-  { icon: 'inventory_2', label: 'Inventario' },
-  { icon: 'shopping_cart', label: 'Compras' },
-  { icon: 'people', label: 'Clientes' },
-  { icon: 'receipt_long', label: 'Ventas' },
-];
-
 async function onSubmit(email: string, password: string) {
-  await handleLogin(email, password);
-  formRef.value?.setLoading(false);
+  formRef.value?.setLoading(true);
+  try {
+    await handleLogin(email, password);
+  } finally {
+    formRef.value?.setLoading(false);
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-.login-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $primary 20%, $secondary 30%, $primary-dark 50%);
+.pharma-login-canvas {
+  background-color: var(--surface-base);
+  position: relative;
+  overflow: hidden;
 }
 
-.feature-box {
-  border: 1px solid $grey-4;
-  background: white;
-  transition: border-color 0.2s ease;
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  z-index: 0;
+}
+.glow-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0,180,166,0.2) 0%, rgba(0,180,166,0) 70%);
+  top: -10%;
+  left: -10%;
+}
+.glow-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(108,92,231,0.15) 0%, rgba(108,92,231,0) 70%);
+  bottom: -20%;
+  right: -10%;
+}
 
-  &:hover {
-    border-color: $primary;
+.pharma-card {
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.04);
+  backdrop-filter: blur(10px);
+}
+
+.bg-gradient-teal {
+  background: linear-gradient(135deg, var(--q-primary) 0%, var(--border-focus) 100%);
+}
+
+.brand-section {
+  @media (max-width: $breakpoint-sm-max) {
+    display: none;
   }
+}
+
+.pattern-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px);
+  background-size: 24px 24px;
+  opacity: 0.4;
+}
+
+.trust-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  transition: background 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.lh-lg {
+  line-height: 1.6;
+}
+.opacity-80 {
+  opacity: 0.8;
 }
 </style>

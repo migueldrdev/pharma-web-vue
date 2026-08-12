@@ -1,85 +1,65 @@
 import { ref, computed } from 'vue';
 import { useFetchHttp, HttpMethods } from '@composables/useFetchHttp';
 import { useNotify } from '@composables/useNotify';
-import type { IDashboardKPI } from '../interfaces/IDashboard';
-
-interface DashboardData {
-  daily_sales_total: number;
-  daily_transactions: number;
-  monthly_sales_total: number;
-  monthly_transactions: number;
-  total_products: number;
-  low_stock_count: number;
-  expiring_soon_count: number;
-  sales_trend: number[];
-  top_categories: { name: string; y: number }[];
-  recent_sales: {
-    id: number;
-    client_name: string;
-    total: number;
-    sale_date: string;
-    status: string;
-  }[];
-  low_stock_products: {
-    id: number;
-    name: string;
-    code: string;
-    stock: number;
-    min_stock: number;
-    category_name: string;
-  }[];
-}
+import type {
+  IDashboardResponse,
+  IDashboardKPI,
+  ISalesTrendItem,
+  ITopProductItem,
+} from '../interfaces/IDashboard';
 
 export function useDashboard() {
   const { fetchHttpResource } = useFetchHttp();
   const { warning } = useNotify();
   const loading = ref(false);
 
-  const data = ref<DashboardData>();
+  const data = ref<IDashboardResponse>();
 
+  // ─── KPI Cards ───────────────────────────────────────────────
   const kpis = computed<IDashboardKPI[]>(() => {
-    if (!data.value) return [];
+    const k = data.value?.kpis;
+    if (!k) return [];
     return [
       {
         id: 'daily-sales',
         title: 'Ventas Hoy',
-        value: data.value.daily_sales_total,
+        value: k.daily_sales_total,
         icon: 'point_of_sale',
         prefix: 'S/ ',
         trend: 'up',
-        trendValue: `${data.value.daily_transactions} trans.`,
+        trendValue: `${k.daily_transactions} trans.`,
         color: 'primary',
       },
       {
         id: 'monthly-sales',
         title: 'Ingresos del Mes',
-        value: data.value.monthly_sales_total,
+        value: k.monthly_sales_total,
         icon: 'account_balance_wallet',
         prefix: 'S/ ',
         trend: 'up',
-        trendValue: `${data.value.monthly_transactions} trans.`,
+        trendValue: `${k.monthly_transactions} trans.`,
         color: 'positive',
       },
       {
         id: 'total-products',
         title: 'Productos en Stock',
-        value: data.value.total_products,
+        value: k.total_products,
         icon: 'inventory',
         color: 'secondary',
       },
       {
         id: 'low-stock',
         title: 'Stock Bajo',
-        value: data.value.low_stock_count,
+        value: k.low_stock_count,
         icon: 'warning',
-        trend: data.value.low_stock_count > 0 ? 'down' : 'neutral',
+        trend: k.low_stock_count > 0 ? 'down' : 'neutral',
         trendValue: 'productos',
         color: 'warning',
       },
       {
         id: 'expiring',
         title: 'Por Vencer',
-        value: data.value.expiring_soon_count,
+        value: k.expiring_soon_count,
         icon: 'event_busy',
         trend: 'down',
         trendValue: '30 días',
@@ -88,7 +68,7 @@ export function useDashboard() {
       {
         id: 'transactions',
         title: 'Transacciones Mes',
-        value: data.value.monthly_transactions,
+        value: k.monthly_transactions,
         icon: 'receipt_long',
         trend: 'up',
         trendValue: 'total',
@@ -97,9 +77,10 @@ export function useDashboard() {
     ];
   });
 
+  // ─── Tablas ──────────────────────────────────────────────────
   const recentSales = computed(
     () =>
-      data.value?.recent_sales?.map((s) => ({
+      data.value?.tables.recent_sales?.map((s) => ({
         id: s.id,
         client: s.client_name ?? 'Anónimo',
         total: s.total,
@@ -110,7 +91,7 @@ export function useDashboard() {
 
   const lowStockProducts = computed(
     () =>
-      data.value?.low_stock_products?.map((p) => ({
+      data.value?.tables.low_stock_products?.map((p) => ({
         id: p.id,
         name: p.name,
         code: p.code ?? '-',
@@ -120,22 +101,48 @@ export function useDashboard() {
       })) ?? [],
   );
 
-  const salesTrend = computed(() => data.value?.sales_trend ?? [0, 0, 0, 0]);
-
-  const topProductsNames = computed<[string, number][]>(
-    () => data.value?.top_categories.map((c): [string, number] => [c.name, c.y]) ?? [],
+  // ─── Charts: Tendencia de ventas ─────────────────────────────
+  const salesTrendRaw = computed<ISalesTrendItem[]>(
+    () => data.value?.charts.sales_trend ?? [],
   );
 
+  const salesTrendLabels = computed(() =>
+    salesTrendRaw.value.map((t) => t.period),
+  );
+
+  const salesTrendData = computed(() =>
+    salesTrendRaw.value.map((t) => t.sales),
+  );
+
+  const expensesTrendData = computed(() =>
+    salesTrendRaw.value.map((t) => t.expenses),
+  );
+
+  // ─── Charts: Categorías (Pie chart) ──────────────────────────
+  // Mapeo de backend (total_sold) a Highcharts (y) ocurre AQUÍ
+  const topCategoriesChartData = computed<{ name: string; y: number }[]>(
+    () =>
+      data.value?.charts.top_categories.map((c) => ({
+        name: c.name,
+        y: c.total_sold,
+      })) ?? [],
+  );
+
+  // ─── Charts: Top productos (nueva gráfica) ──────────────────
+  const topProducts = computed<ITopProductItem[]>(
+    () => data.value?.charts.top_products ?? [],
+  );
+
+  // ─── Fetch ───────────────────────────────────────────────────
   async function refreshData() {
     loading.value = true;
     try {
-      const res = await fetchHttpResource<DashboardData>({
+      const res = await fetchHttpResource<IDashboardResponse>({
         path: '/dashboard',
         method: HttpMethods.Get,
       });
       if (res.success) {
         data.value = res.data;
-        console.log('data --> ', data.value);
       }
     } catch {
       if (!data.value) {
@@ -151,8 +158,14 @@ export function useDashboard() {
     kpis,
     recentSales,
     lowStockProducts,
-    salesTrend,
-    topProductsNames: computed(() => topProductsNames),
+    // Charts: Sales Trend
+    salesTrendLabels,
+    salesTrendData,
+    expensesTrendData,
+    // Charts: Categories (Pie)
+    topCategoriesChartData,
+    // Charts: Top Products
+    topProducts,
     refreshData,
   };
 }

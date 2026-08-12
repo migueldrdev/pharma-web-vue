@@ -1,29 +1,48 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { baseChartOptions, salesChartSeries } from '../charts/chartOptions';
+import { baseChartOptions } from '../charts/chartOptions';
 import HcChart from './HcChart.vue';
+import type { SeriesOptionsType } from 'highcharts';
 
 const props = defineProps<{
-  data: number[];
-  categories: string[];
+  labels: string[];
+  salesData: number[];
   loading?: boolean;
 }>();
 
-const hasData = computed(() => props.data.length > 0);
+const hasData = computed(() => props.salesData.length > 0);
 
 const chartOptions = computed(() => ({
   ...baseChartOptions(280),
   title: { text: '' },
-  chart: { ...baseChartOptions(280).chart, type: 'line' },
-  xAxis: { categories: props.categories },
-  yAxis: { title: { text: 'Ventas (S/)' } },
-  colors: ['#00B4A6', '#FF6B6B'],
-  series: salesChartSeries(
-    props.data,
-    props.data.map((d) => d * 1.2),
-  ),
+  chart: { ...baseChartOptions(280).chart, type: 'area' },
+  xAxis: {
+    categories: props.labels,
+    labels: { style: { fontSize: '11px' } },
+  },
+  yAxis: {
+    title: { text: 'Ventas (S/)' },
+    labels: { format: 'S/ {value}' },
+  },
+  colors: ['#00B4A6'],
+  series: [
+    {
+      name: 'Ventas',
+      type: 'area',
+      data: props.salesData,
+      lineWidth: 3,
+      marker: { radius: 5 },
+      fillOpacity: 0.15,
+      dataLabels: { enabled: true, format: 'S/ {y}' },
+    },
+  ] as SeriesOptionsType[],
   plotOptions: {
-    line: { dataLabels: { enabled: true, format: 'S/ {y}' } },
+    area: {
+      fillOpacity: 0.15,
+    },
+  },
+  tooltip: {
+    pointFormat: '<b>S/ {point.y:.2f}</b>',
   },
   accessibility: { enabled: false },
 }));

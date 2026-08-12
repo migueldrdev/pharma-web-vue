@@ -44,9 +44,7 @@ function formatTime(dateStr: string | undefined): string {
   return `Hace ${diffDays}d`;
 }
 
-function dismissAlert(id: number | string): void {
-  markAsRead(id);
-}
+
 
 function onNotificationClick(alertItem: (typeof alerts.value)[0]): void {
   markAsRead(alertItem.id);

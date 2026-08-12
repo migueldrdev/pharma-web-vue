@@ -4,7 +4,7 @@ import { baseChartOptions, pieChartSeries } from '../charts/chartOptions';
 import HcChart from './HcChart.vue';
 
 const props = defineProps<{
-  data: Array<[string, number]>;
+  data: Array<{ name: string; y: number }>;
   loading?: boolean;
 }>();
 
@@ -15,7 +15,7 @@ const chartOptions = computed(() => ({
   title: { text: '' },
   chart: { ...baseChartOptions(280).chart, type: 'pie' },
   colors: ['#00B4A6', '#FF6B6B', '#FF9500', '#6C5CE7', '#A0D911'],
-  series: pieChartSeries(props.data.map(([name, y]) => ({ name, y }))),
+  series: pieChartSeries(props.data),
   accessibility: { enabled: false },
 }));
 </script>

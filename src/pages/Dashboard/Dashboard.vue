@@ -1,54 +1,56 @@
 <template>
   <q-page class="q-pa-md q-pa-lg-lg">
-    <div class="row items-center q-mb-md">
-      <div class="col">
-        <h1 class="text-h5 q-ma-none">Dashboard</h1>
-        <p class="text-caption text-grey-7 q-ma-none">Panel de control principal</p>
+    <q-scroll-area :horizontal-offset="[0, 2]" style="height: calc(100vh - 120px)">
+      <div class="row items-center q-mb-md">
+        <div class="col">
+          <h1 class="text-h5 q-ma-none">Dashboard</h1>
+          <p class="text-caption text-grey-7 q-ma-none">Panel de control principal</p>
+        </div>
+        <div class="col-auto">
+          <q-btn round flat icon="refresh" color="primary" :loading="loading" @click="refreshData" />
+        </div>
       </div>
-      <div class="col-auto">
-        <q-btn round flat icon="refresh" color="primary" :loading="loading" @click="refreshData" />
-      </div>
-    </div>
-    <KpiGrid :kpis="kpis" :loading="loading" class="q-mb-lg" />
 
-    <div class="row q-col-gutter-lg q-mb-lg">
-      <div class="col-12 col-md-6">
-        {{ salesTrend }}
-        <SalesChart
-          :data="[...salesTrend]"
-          :categories="['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']"
-          :loading="loading"
-        />
-      </div>
-      <div class="col-12 col-md-6">
-        <TopProductsChart :data="topProductsNames.value" :loading="loading" />
-      </div>
-    </div>
+      <QuickActions class="q-mb-lg" />
 
-    <div class="row q-col-gutter-lg q-mb-lg">
-      <div class="col-12 col-md-6">
-        <InventoryPieChart :data="topProductsNames.value" :loading="loading" />
-      </div>
-      <div class="col-12 col-md-6">
-        <CashFlowChart
-          :income-data="salesTrend"
-          :expense-data="salesTrend.map((d) => d * 0.3)"
-          :categories="['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']"
-          :loading="loading"
-        />
-      </div>
-    </div>
+      <KpiGrid :kpis="kpis" :loading="loading" class="q-mb-lg" />
 
-    <div class="row q-col-gutter-lg q-mb-lg">
-      <div class="col-12 col-md-6">
-        <RecentSalesTable :sales="recentSales" :loading="loading" />
+      <div class="row q-col-gutter-lg q-mb-lg">
+        <div class="col-12 col-md-6">
+          <SalesChart
+            :labels="salesTrendLabels"
+            :sales-data="salesTrendData"
+            :loading="loading"
+          />
+        </div>
+        <div class="col-12 col-md-6">
+          <TopProductsChart :data="topProducts" :loading="loading" />
+        </div>
       </div>
-      <div class="col-12 col-md-6">
-        <LowStockTable :products="lowStockProducts" :loading="loading" />
-      </div>
-    </div>
 
-    <QuickActions />
+      <div class="row q-col-gutter-lg q-mb-lg">
+        <div class="col-12 col-md-6">
+          <InventoryPieChart :data="topCategoriesChartData" :loading="loading" />
+        </div>
+        <div class="col-12 col-md-6">
+          <CashFlowChart
+            :labels="salesTrendLabels"
+            :sales-data="salesTrendData"
+            :expenses-data="expensesTrendData"
+            :loading="loading"
+          />
+        </div>
+      </div>
+
+      <div class="row q-col-gutter-lg q-mb-lg">
+        <div class="col-12 col-md-6">
+          <RecentSalesTable :sales="recentSales" :loading="loading" />
+        </div>
+        <div class="col-12 col-md-6">
+          <LowStockTable :products="lowStockProducts" :loading="loading" />
+        </div>
+      </div>
+    </q-scroll-area>
   </q-page>
 </template>
 
@@ -66,8 +68,18 @@ import { useDashboard } from './composables/useDashboard';
 
 defineOptions({ name: 'DashboardPage' });
 
-const { loading, kpis, recentSales, lowStockProducts, salesTrend, topProductsNames, refreshData } =
-  useDashboard();
+const {
+  loading,
+  kpis,
+  recentSales,
+  lowStockProducts,
+  salesTrendLabels,
+  salesTrendData,
+  expensesTrendData,
+  topCategoriesChartData,
+  topProducts,
+  refreshData,
+} = useDashboard();
 
 onMounted(() => {
   void refreshData();
