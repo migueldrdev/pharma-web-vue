@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import AppEmptyState from '@components/shared/AppEmptyState.vue';
 import { usePurchases } from './composables/usePurchases';
-import type { IPurchase } from './interfaces/IPurchase';
 
 defineOptions({ name: 'PurchasesPage' });
 
+const router = useRouter();
 const { purchases, loading, filter, pagination, loadPurchases } = usePurchases();
 
 async function onTableRequest(props: { pagination: { page: number; rowsPerPage: number } }) {
@@ -16,59 +18,57 @@ async function onTableRequest(props: { pagination: { page: number; rowsPerPage: 
 
 const columns = [
   { name: 'id', label: '#', field: 'id', align: 'left' as const },
-  {
-    name: 'purchase_date',
-    label: 'Fecha',
-    field: (row: IPurchase) => row.purchase_date?.slice(0, 10) ?? '-',
-    align: 'left' as const,
-  },
+  { name: 'purchase_date', label: 'Fecha', field: 'purchase_date', align: 'left' as const },
   { name: 'supplier_name', label: 'Proveedor', field: 'supplier_name', align: 'left' as const },
-  {
-    name: 'total',
-    label: 'Total',
-    field: (row: IPurchase) => `S/ ${Number(row.total).toFixed(2)}`,
-    align: 'right' as const,
-  },
+  { name: 'total', label: 'Total', field: 'total', align: 'right' as const },
 ];
 
 onMounted(async () => {
   await loadPurchases();
 });
+
+function goToNewPurchase() {
+  void router.push('/purchases/new');
+}
 </script>
 
 <template>
   <q-page class="q-pa-md">
-    <AppPageHeader title="Compras" subtitle="Historial de compras">
+    <AppPageHeader title="Compras" subtitle="Historial de compras a proveedores">
       <template #actions>
         <q-btn
+          class="pharma-btn-main"
           color="primary"
           icon="add"
           label="Nueva Compra"
           unelevated
-          :to="{ path: '/purchases/new' }"
+          @click="goToNewPurchase"
         />
         <q-btn icon="refresh" flat round @click="loadPurchases()" :loading="loading" />
       </template>
     </AppPageHeader>
 
-    <q-card flat bordered>
+    <q-card class="pharma-card" flat>
       <q-card-section>
         <q-input
           v-model="filter"
           label="Buscar por proveedor"
+          class="pharma-input-inset q-mb-md"
           outlined
           dense
           clearable
           debounce="400"
-          class="q-mb-md"
           @update:model-value="
             pagination.page = 1;
             loadPurchases();
           "
         >
-          <template #prepend><q-icon name="search" /></template>
+          <template #prepend>
+            <q-icon name="search" />
+          </template>
         </q-input>
       </q-card-section>
+
       <q-table
         :rows="purchases"
         :columns="columns"
@@ -76,13 +76,49 @@ onMounted(async () => {
         v-model:pagination="pagination"
         :loading="loading"
         :rows-per-page-options="[10, 25, 50]"
+        class="bg-transparent"
         flat
         @request="onTableRequest"
       >
+        <template #body-cell-purchase_date="props">
+          <q-td :props="props">
+            <q-chip outline color="grey-8" size="sm" class="text-weight-medium">
+              {{ props.row.purchase_date?.slice(0, 10) ?? '-' }}
+            </q-chip>
+          </q-td>
+        </template>
+
+        <template #body-cell-supplier_name="props">
+          <q-td :props="props">
+            <q-icon name="mdi-truck-delivery-outline" size="xs" color="grey-7" class="q-mr-xs" />
+            {{ props.row.supplier_name }}
+          </q-td>
+        </template>
+
+        <template #body-cell-total="props">
+          <q-td :props="props" class="text-weight-bold text-primary">
+            S/ {{ Number(props.row.total).toFixed(2) }}
+          </q-td>
+        </template>
+
         <template #no-data>
-          <div class="text-center q-py-lg text-grey-6">
-            <q-icon name="shopping_cart" size="48px" />
-            <div class="text-subtitle1 q-mt-sm">Sin compras registradas</div>
+          <div class="full-width row flex-center q-pa-md">
+            <AppEmptyState
+              icon="mdi-cart-arrow-down"
+              title="Sin compras registradas"
+              description="No se encontraron compras en el sistema o con los filtros aplicados"
+            >
+              <template #actions>
+                <q-btn
+                  class="pharma-btn-main"
+                  color="primary"
+                  icon="add"
+                  label="Nueva Compra"
+                  unelevated
+                  @click="goToNewPurchase"
+                />
+              </template>
+            </AppEmptyState>
           </div>
         </template>
       </q-table>

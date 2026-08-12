@@ -170,15 +170,13 @@ export function useFetchHttp() {
 
       try {
         const axiosResponse = await axiosInstance(axiosConfig);
-        return downloadResource(
+        return (await downloadResource(
           axiosResponse,
           axiosResponse.headers['file-name'] ?? options.nameDocument ?? 'download',
           options.downloadJson ?? false,
-          notificationId, // Pasar el ID para actualizar la notificación correcta
-        );
+          notificationId,
+        )) as unknown as IHttpResponse<TData>;
       } catch (err: unknown) {
-        // Captura 'unknown' para un mejor tipado
-        // Manejar errores de descarga, limpiar notificación
         const finalNotification = activeDownloadNotifications.get(notificationId);
         if (finalNotification) {
           finalNotification({
@@ -190,12 +188,11 @@ export function useFetchHttp() {
           });
           activeDownloadNotifications.delete(notificationId);
         }
-        // Re-lanza el error para que catchAxiosError lo maneje
         throw err;
       }
     }
 
-    return handleRequest(axiosInstance, axiosConfig, showLoading);
+    return handleRequest<TData>(axiosInstance, axiosConfig, showLoading);
   };
 
   const handleRequest = async <TData = unknown>(
@@ -206,19 +203,17 @@ export function useFetchHttp() {
     if (showLoading) showLoad();
     try {
       const response = await axiosInstance(axiosConfig);
-      // Asume que la respuesta exitosa ya tiene la estructura IHttpResponse
       return response.data as IHttpResponse<TData>;
     } catch (err: unknown) {
-      // Captura 'unknown' para un mejor tipado
-      return await catchAxiosError(err);
+      return (await catchAxiosError(err)) as unknown as IHttpResponse<TData>;
     } finally {
       if (showLoading) hideLoad();
     }
   };
 
   // Manejador de errores
-  const catchAxiosError = (err: unknown): Promise<IHttpResponse<any>> => {
-    const defaultResponse: IHttpResponse<any> = {
+  const catchAxiosError = (err: unknown): Promise<IHttpResponse<unknown>> => {
+    const defaultResponse: IHttpResponse<unknown> = {
       responseCode: 'IKERR',
       responseAction: '',
       success: false,
@@ -230,53 +225,39 @@ export function useFetchHttp() {
 
     // axios.isAxiosError es un type guard
     if (axios.isAxiosError(err)) {
-      const errorResponse = (err.response?.data as IHttpResponse<any>) ?? defaultResponse;
+      const errorResponse = (err.response?.data as IHttpResponse<unknown>) ?? defaultResponse;
 
       // AxiosError tiene una propiedad `code` para errores de red o de cancelación
       if (err.code === AxiosError.ERR_NETWORK) {
-        // Si onNetworkError() devuelve una Promesa, no necesitas Promise.resolve() aquí
-        // Pero si devuelve directamente IHttpResponse, ¡sí lo necesitas!
-        return onNetworkError(); // Asumiendo que onNetworkError() ya devuelve Promise<IHttpResponse<any>>
+        return onNetworkError();
       }
 
-      // Los 401s son manejados por el interceptor global en boot/axios.ts,
-      // así que aquí solo devolvemos el error de la API si no es un 401.
-      // Si el interceptor redirige, esta parte del código no se ejecutará.
       if (err.response?.status === 404) {
-        // Similar a onNetworkError(), si onNotFound() devuelve Promise, está bien.
-        // Si devuelve IHttpResponse, ¡necesitas Promise.resolve() aquí!
-        return onNotFound(err.response); // Asumiendo que onNotFound() ya devuelve Promise<IHttpResponse<any>>
+        return onNotFound(err.response);
       }
 
-      // Si hay una respuesta, pero no es 401/404 y es un error de API
       if (err.response) {
-        return Promise.resolve(errorResponse); // ¡Aquí la corrección!
+        return Promise.resolve(errorResponse);
       }
 
-      // Otros errores de Axios (ej. cancelación si no se maneja con AbortController.signal)
       if (err.message === 'Solicitud cancelada.') {
         return Promise.resolve({
-          // ¡Aquí la corrección!
           ...defaultResponse,
           message: err.message,
           responseCode: 'IKCANC',
         });
       }
 
-      // Para errores no manejados por status específicos o network error
       return Promise.resolve({
-        // ¡Aquí la corrección!
         ...defaultResponse,
         message: err.message || defaultResponse.message,
       });
     }
 
-    // Si no es un AxiosError, devuelve la defaultResponse envuelta en una Promesa
-    return Promise.resolve(defaultResponse); // ¡Aquí la corrección!
+    return Promise.resolve(defaultResponse);
   };
 
-  // Modificado: ahora devuelve una Promesa que resuelve a IHttpResponse<any>
-  const onNetworkError = (): Promise<IHttpResponse<any>> =>
+  const onNetworkError = (): Promise<IHttpResponse<unknown>> =>
     Promise.resolve({
       responseCode: 'IKERR',
       responseAction: '',
@@ -287,14 +268,13 @@ export function useFetchHttp() {
       otherData: [],
     });
 
-  // Modificado: ahora devuelve una Promesa que resuelve a IHttpResponse<any>
-  const onNotFound = (response: AxiosResponse<any>): Promise<IHttpResponse<any>> =>
+  const onNotFound = (response: AxiosResponse<unknown>): Promise<IHttpResponse<unknown>> =>
     Promise.resolve({
       responseCode: 'IKERR',
       responseAction: '',
       success: false,
       data: [],
-      message: response.data?.message ?? 'Recurso no encontrado',
+      message: (response.data as { message?: string })?.message ?? 'Recurso no encontrado',
       otherMessage: '',
       otherData: [],
     });
@@ -302,12 +282,11 @@ export function useFetchHttp() {
     response: AxiosResponse,
     filename: string,
     downloadJson: boolean,
-    notificationId: string, // Recibe el ID de la notificación a actualizar
-  ): Promise<IHttpResponse<any>> => {
+    notificationId: string,
+  ): Promise<IHttpResponse<unknown>> => {
     const contentType = response.headers['content-type'];
     const finalNotification = activeDownloadNotifications.get(notificationId);
 
-    // Si la respuesta no es válida o el status no es 2xx
     if (!response || response.status < 200 || response.status >= 300) {
       if (finalNotification) {
         finalNotification({
@@ -331,10 +310,9 @@ export function useFetchHttp() {
     }
 
     if (contentType?.includes('application/json') && !downloadJson) {
-      // Intenta leer el blob como texto para ver si es un JSON de error
       try {
         const text = await new Blob([response.data]).text();
-        const parsed: IHttpResponse<any> = JSON.parse(text);
+        const parsed: IHttpResponse<unknown> = JSON.parse(text);
 
         if (!parsed.success) {
           // Si el JSON indica un error

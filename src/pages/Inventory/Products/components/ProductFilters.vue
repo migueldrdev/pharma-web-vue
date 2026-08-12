@@ -33,26 +33,27 @@ function onFilterChange() {
 </script>
 
 <template>
-  <q-card flat bordered class="q-mb-md">
+  <q-card class="pharma-card q-mb-lg q-pa-sm" flat>
     <q-card-section class="q-pa-md">
-      <div class="row q-gutter-md items-end">
+      <div class="row q-col-gutter-md items-end">
         <!-- Input: Buscar productos -->
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-4">
           <q-input
             v-model="search"
             @update:model-value="onFilterChange"
-            label="Buscar productos"
+            label="Buscar por nombre o código..."
             outlined
             dense
             clearable
             debounce="400"
+            class="pharma-input-inset"
           >
-            <template #prepend><q-icon name="search" /></template>
+            <template #prepend><q-icon name="search" color="primary" /></template>
           </q-input>
         </div>
 
         <!-- Select: Categoría -->
-        <div class="col-12 col-sm-6 col-md-2">
+        <div class="col-12 col-sm-6 col-md-3">
           <q-select
             v-model="categoryId"
             @update:model-value="onFilterChange"
@@ -63,11 +64,12 @@ function onFilterChange() {
             clearable
             emit-value
             map-options
+            class="pharma-input-inset"
           />
         </div>
 
         <!-- Select: Laboratorio -->
-        <div class="col-12 col-sm-6 col-md-2">
+        <div class="col-12 col-sm-6 col-md-3">
           <q-select
             v-model="labId"
             @update:model-value="onFilterChange"
@@ -78,6 +80,7 @@ function onFilterChange() {
             clearable
             emit-value
             map-options
+            class="pharma-input-inset"
           />
         </div>
 
@@ -93,6 +96,7 @@ function onFilterChange() {
             clearable
             emit-value
             map-options
+            class="pharma-input-inset"
           />
         </div>
       </div>

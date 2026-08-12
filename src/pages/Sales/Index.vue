@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
+import AppEmptyState from '@components/shared/AppEmptyState.vue';
+import AppStatusBadge from '@components/shared/AppStatusBadge.vue';
 import { useSales } from './composables/useSales';
 import type { ISale } from './interfaces/ISale';
 
@@ -41,13 +43,13 @@ const columns = [
   {
     name: 'total',
     label: 'Total',
-    field: (row: ISale) => `S/ ${Number(row.total).toFixed(2)}`,
+    field: (row: ISale) => row.total,
     align: 'right' as const,
   },
   {
     name: 'status',
     label: 'Estado',
-    field: (row: ISale) => (row.active ? 'Activa' : 'Anulada'),
+    field: (row: ISale) => row.active,
     align: 'center' as const,
   },
 ];
@@ -55,14 +57,19 @@ const columns = [
 onMounted(async () => {
   await loadSales();
 });
+
+const getInitials = (name: string | undefined | null) => {
+  if (!name || name === 'Anónimo') return 'A';
+  return name.charAt(0).toUpperCase();
+};
 </script>
 
 <template>
   <q-page class="q-pa-md">
-    <AppPageHeader title="Ventas" subtitle="Historial de transacciones">
+    <AppPageHeader title="Ventas" subtitle="Historial de transacciones de venta">
       <template #actions>
         <q-btn
-          color="primary"
+          class="pharma-btn-main"
           icon="add"
           label="Nueva Venta"
           unelevated
@@ -72,17 +79,17 @@ onMounted(async () => {
       </template>
     </AppPageHeader>
 
-    <q-card flat bordered>
+    <q-card class="pharma-card q-mt-md" flat bordered>
       <q-card-section>
-        <div class="row q-gutter-sm items-end q-mb-md">
+        <div class="row q-gutter-sm items-end">
           <q-input
             v-model="filter"
-            label="Buscar"
+            label="Buscar por cliente/código"
             outlined
             dense
             clearable
             debounce="400"
-            class="col-12 col-sm-4"
+            class="col-12 col-sm-4 pharma-input-inset"
             @update:model-value="
               pagination.page = 1;
               loadSales();
@@ -97,7 +104,7 @@ onMounted(async () => {
             dense
             label="Desde"
             type="date"
-            class="col-12 col-sm-3"
+            class="col-12 col-sm-3 pharma-input-inset"
             @update:model-value="onDateFilter"
           />
           <q-input
@@ -106,7 +113,7 @@ onMounted(async () => {
             dense
             label="Hasta"
             type="date"
-            class="col-12 col-sm-3"
+            class="col-12 col-sm-3 pharma-input-inset"
             @update:model-value="onDateFilter"
           />
         </div>
@@ -120,12 +127,63 @@ onMounted(async () => {
         :loading="loading"
         :rows-per-page-options="[10, 25, 50]"
         flat
+        class="bg-transparent"
         @request="onTableRequest"
       >
+        <template #body-cell-id="props">
+          <q-td :props="props" class="text-grey-7">
+            #{{ props.row.id }}
+          </q-td>
+        </template>
+        
+        <template #body-cell-sale_date="props">
+          <q-td :props="props">
+            <q-chip outline color="primary" class="bg-grey-1" size="sm" dense>
+              {{ props.row.sale_date?.slice(0, 10) ?? '-' }}
+            </q-chip>
+          </q-td>
+        </template>
+        
+        <template #body-cell-client_name="props">
+          <q-td :props="props">
+            <div class="row items-center no-wrap">
+              <q-avatar size="sm" color="teal" text-color="white" class="q-mr-sm">
+                {{ getInitials(props.row.client_name || props.row.customer_name) }}
+              </q-avatar>
+              <span class="text-weight-bold">{{ props.row.client_name || props.row.customer_name || 'Anónimo' }}</span>
+            </div>
+          </q-td>
+        </template>
+        
+        <template #body-cell-total="props">
+          <q-td :props="props" class="text-weight-bold text-teal">
+            S/ {{ Number(props.row.total).toFixed(2) }}
+          </q-td>
+        </template>
+        
+        <template #body-cell-status="props">
+          <q-td :props="props">
+            <AppStatusBadge :status="props.row.active ? 'active' : 'inactive'" :label="props.row.active ? 'Activa' : 'Anulada'" />
+          </q-td>
+        </template>
+        
         <template #no-data>
-          <div class="text-center q-py-lg text-grey-6">
-            <q-icon name="receipt_long" size="48px" />
-            <div class="text-subtitle1 q-mt-sm">Sin ventas registradas</div>
+          <div class="full-width row flex-center q-pa-md">
+            <AppEmptyState
+              icon="receipt_long"
+              title="Sin ventas registradas"
+              description="No se encontraron transacciones en el periodo o con los filtros seleccionados"
+            >
+              <template #actions>
+                <q-btn
+                  class="pharma-btn-main"
+                  icon="add"
+                  label="Nueva Venta"
+                  unelevated
+                  :to="{ path: '/sales/new' }"
+                />
+              </template>
+            </AppEmptyState>
           </div>
         </template>
       </q-table>

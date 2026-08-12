@@ -1,4 +1,4 @@
-import { ref, watch, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { useNotify } from '@composables/useNotify';
 import { productResources } from '../api-resource/productResource';
@@ -13,11 +13,26 @@ export function useProductForm() {
   const imageFile = ref<File | null>(null);
 
   const defaultForm = (): IProductFormData => ({
-    name: '', code: '', category_id: null, lab_id: null, type_id: null,
-    presentation_id: null, stock: 0, price: 0, min_stock: 5, image: '',
-    pharmaceutical_form: '', description: '', batch: '', expiration_date: '',
-    manufacturing_date: '', concentration: '', storage_condition_id: null,
-    status: 'active', requires_prescription: false, is_controlled: false,
+    name: '',
+    code: '',
+    category_id: null,
+    lab_id: null,
+    type_id: null,
+    presentation_id: null,
+    stock: 0,
+    price: 0,
+    min_stock: 5,
+    image: '',
+    pharmaceutical_form: '',
+    description: '',
+    batch: '',
+    expiration_date: '',
+    manufacturing_date: '',
+    concentration: '',
+    storage_condition_id: null,
+    status: 'active',
+    requires_prescription: false,
+    is_controlled: false,
   });
 
   const form = ref<IProductFormData>(defaultForm());
@@ -57,7 +72,9 @@ export function useProductForm() {
 
   function generateCode() {
     const ts = Date.now().toString().slice(-6);
-    const rnd = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const rnd = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, '0');
     form.value.code = `PRD${ts}${rnd}`;
   }
 
@@ -72,7 +89,9 @@ export function useProductForm() {
     }
     imageFile.value = file;
     const reader = new FileReader();
-    reader.onload = (e) => { imagePreview.value = (e.target?.result as string) ?? ''; };
+    reader.onload = (e) => {
+      imagePreview.value = (e.target?.result as string) ?? '';
+    };
     reader.readAsDataURL(file);
   }
 
@@ -86,7 +105,7 @@ export function useProductForm() {
     saving.value = true;
     try {
       const fd = new FormData();
-      const entries = Object.entries(form.value) as [string, string | number | boolean | null][];
+      const entries = Object.entries(form.value);
 
       for (const [key, value] of entries) {
         if (value === null || value === undefined) continue;
@@ -123,8 +142,14 @@ export function useProductForm() {
   }
 
   return {
-    form, saving, imagePreview,
-    populateFromProduct, resetForm, generateCode,
-    setImageFile, removeImage, save,
+    form,
+    saving,
+    imagePreview,
+    populateFromProduct,
+    resetForm,
+    generateCode,
+    setImageFile,
+    removeImage,
+    save,
   };
 }

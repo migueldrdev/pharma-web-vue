@@ -1,76 +1,11 @@
-// import type { RouteRecordRaw } from 'vue-router';
-
-// const routes: RouteRecordRaw[] = [
-//   {
-//     path: '/',
-//     component: () => import('@layouts/MainLayout.vue'),
-//     meta: { requiresAuth: true },
-//     children: [{ path: '', component: () => import('@pages/Dashboard/Dashboard.vue') }],
-//   },
-//   {
-//     path: '/login',
-//     component: () => import('@pages/Login/Login.vue'),
-//   },
-//   {
-//     path: '/:catchAll(.*)*',
-//     component: () => import('@pages/ErrorNotFound.vue'),
-//   },
-// ];
-
-// export default routes;
-// src/router/routes.ts
-import { RouteRecordRaw } from 'vue-router';
-
-// Importar el layout principal
-import MainLayout from '@layouts/MainLayout.vue';
-
-// Importar páginas
-import Dashboard from '@pages/Dashboard/Dashboard.vue';
-import Login from '@pages/Login/Login.vue';
-
-// Páginas de Ventas
-import SalesIndex from '@pages/Sales/Index.vue';
-import NewSale from '@pages/Sales/New.vue';
-import SalesReports from '@pages/Sales/Reports.vue';
-
-// Páginas de Inventario
-import ProductsIndex from '@pages/Inventory/Products/Index.vue';
-import CategoriesIndex from '@pages/Inventory/Categories/Index.vue';
-import StockAlerts from '@pages/Inventory/StockAlerts.vue';
-import ExpiryAlerts from '@pages/Inventory/ExpiryAlerts.vue';
-
-// Páginas de Compras
-import PurchasesIndex from '@pages/Purchases/Index.vue';
-import NewPurchase from '@pages/Purchases/New.vue';
-import SuppliersIndex from '@pages/Purchases/Suppliers/Index.vue';
-
-// Páginas de Clientes
-import CustomersIndex from '@pages/Customers/Index.vue';
-
-// Páginas de Reportes
-import SalesReport from '@pages/Reports/Sales.vue';
-import InventoryReport from '@pages/Reports/Inventory.vue';
-import FinancialReport from '@pages/Reports/Financial.vue';
-
-// Páginas de Configuración
-import GeneralSettings from '@pages/Settings/General.vue';
-import SettingsIndex from '@pages/Settings/Index.vue';
-import UsersIndex from '@pages/Settings/Users/Index.vue';
-import PermissionsIndex from '@pages/Settings/Permissions/Index.vue';
-import BackupIndex from '@pages/Settings/Backup/Index.vue';
-
-// Páginas adicionales
-import ProfilePage from '@pages/Profile.vue';
-import ChangePassword from '@pages/ChangePassword.vue';
-import HelpPage from '@pages/Help.vue';
-import NotFound from '@pages/ErrorNotFound.vue';
+import type { RouteRecordRaw } from 'vue-router';
 
 export const routes: RouteRecordRaw[] = [
   // Ruta de login (sin layout)
   {
     path: '/login',
     name: 'login',
-    component: Login,
+    component: () => import('@pages/Login/Login.vue'),
     meta: {
       requiresAuth: false,
       title: 'Iniciar Sesión',
@@ -80,7 +15,7 @@ export const routes: RouteRecordRaw[] = [
   // Rutas principales (con layout)
   {
     path: '/',
-    component: MainLayout,
+    component: () => import('@layouts/MainLayout.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -89,7 +24,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'dashboard',
-        component: Dashboard,
+        component: () => import('@pages/Dashboard/Dashboard.vue'),
         meta: {
           permission: 'dashboard.view',
           title: 'Dashboard',
@@ -101,7 +36,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/sales',
         name: 'sales',
-        component: SalesIndex,
+        component: () => import('@pages/Sales/Index.vue'),
         meta: {
           permission: 'sales.list',
           title: 'Lista de Ventas',
@@ -111,7 +46,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/sales/new',
         name: 'new-sale',
-        component: NewSale,
+        component: () => import('@pages/Sales/New.vue'),
         meta: {
           permission: 'sales.create',
           title: 'Nueva Venta',
@@ -121,7 +56,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/sales/reports',
         name: 'sales-reports',
-        component: SalesReports,
+        component: () => import('@pages/Sales/Reports.vue'),
         meta: {
           permission: 'sales.reports',
           title: 'Reportes de Ventas',
@@ -133,7 +68,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/inventory/products',
         name: 'products',
-        component: ProductsIndex,
+        component: () => import('@pages/Inventory/Products/Index.vue'),
         meta: {
           permission: 'products.view',
           title: 'Productos',
@@ -143,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/inventory/categories',
         name: 'categories',
-        component: CategoriesIndex,
+        component: () => import('@pages/Inventory/Categories/Index.vue'),
         meta: {
           permission: 'categories.view',
           title: 'Categorías',
@@ -153,7 +88,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/inventory/alerts',
         name: 'stock-alerts',
-        component: StockAlerts,
+        component: () => import('@pages/Inventory/StockAlerts.vue'),
         meta: {
           permission: 'inventory.alerts',
           title: 'Alertas de Stock',
@@ -163,7 +98,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/inventory/expiry',
         name: 'expiry-alerts',
-        component: ExpiryAlerts,
+        component: () => import('@pages/Inventory/ExpiryAlerts.vue'),
         meta: {
           permission: 'inventory.expiry',
           title: 'Productos por Vencer',
@@ -175,7 +110,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/purchases',
         name: 'purchases',
-        component: PurchasesIndex,
+        component: () => import('@pages/Purchases/Index.vue'),
         meta: {
           permission: 'purchases.list',
           title: 'Lista de Compras',
@@ -185,7 +120,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/purchases/new',
         name: 'new-purchase',
-        component: NewPurchase,
+        component: () => import('@pages/Purchases/New.vue'),
         meta: {
           permission: 'purchases.create',
           title: 'Nueva Compra',
@@ -195,7 +130,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/purchases/suppliers',
         name: 'suppliers',
-        component: SuppliersIndex,
+        component: () => import('@pages/Purchases/Suppliers/Index.vue'),
         meta: {
           permission: 'suppliers.view',
           title: 'Proveedores',
@@ -207,7 +142,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/customers',
         name: 'customers',
-        component: CustomersIndex,
+        component: () => import('@pages/Customers/Index.vue'),
         meta: {
           permission: 'customers.view',
           title: 'Clientes',
@@ -219,7 +154,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/reports/sales',
         name: 'sales-report',
-        component: SalesReport,
+        component: () => import('@pages/Reports/Sales.vue'),
         meta: {
           permission: 'reports.sales',
           title: 'Reporte de Ventas',
@@ -229,7 +164,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/reports/inventory',
         name: 'inventory-report',
-        component: InventoryReport,
+        component: () => import('@pages/Reports/Inventory.vue'),
         meta: {
           permission: 'reports.inventory',
           title: 'Reporte de Inventario',
@@ -239,7 +174,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/reports/financial',
         name: 'financial-report',
-        component: FinancialReport,
+        component: () => import('@pages/Reports/Financial.vue'),
         meta: {
           permission: 'reports.financial',
           title: 'Reporte Financiero',
@@ -251,7 +186,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/settings',
         name: 'settings',
-        component: SettingsIndex,
+        component: () => import('@pages/Settings/Index.vue'),
         meta: {
           requiresAuth: true,
           permission: 'settings.view',
@@ -262,7 +197,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/settings/general',
         name: 'general-settings',
-        component: GeneralSettings,
+        component: () => import('@pages/Settings/General.vue'),
         meta: {
           permission: 'settings.general',
           title: 'Configuración General',
@@ -272,7 +207,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/settings/users',
         name: 'users',
-        component: UsersIndex,
+        component: () => import('@pages/Settings/Users/Index.vue'),
         meta: {
           permission: 'users.view',
           title: 'Usuarios',
@@ -282,7 +217,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/settings/permissions',
         name: 'permissions',
-        component: PermissionsIndex,
+        component: () => import('@pages/Settings/Permissions/Index.vue'),
         meta: {
           permission: 'permissions.view',
           title: 'Permisos',
@@ -292,7 +227,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/settings/backup',
         name: 'backup',
-        component: BackupIndex,
+        component: () => import('@pages/Settings/Backup/Index.vue'),
         meta: {
           permission: 'backup.view',
           title: 'Respaldo',
@@ -304,7 +239,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/profile',
         name: 'profile',
-        component: ProfilePage,
+        component: () => import('@pages/Profile.vue'),
         meta: {
           title: 'Mi Perfil',
           breadcrumb: 'Perfil',
@@ -313,7 +248,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/change-password',
         name: 'change-password',
-        component: ChangePassword,
+        component: () => import('@pages/ChangePassword.vue'),
         meta: {
           title: 'Cambiar Contraseña',
           breadcrumb: 'Cambiar Contraseña',
@@ -322,7 +257,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/help',
         name: 'help',
-        component: HelpPage,
+        component: () => import('@pages/Help.vue'),
         meta: {
           title: 'Ayuda',
           breadcrumb: 'Ayuda',
@@ -335,7 +270,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: NotFound,
+    component: () => import('@pages/ErrorNotFound.vue'),
     meta: {
       title: 'Página no encontrada',
     },

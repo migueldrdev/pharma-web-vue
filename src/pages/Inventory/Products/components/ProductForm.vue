@@ -16,18 +16,20 @@
             <div class="row q-col-gutter-md q-py-sm">
               <div class="col-12 col-md-6">
 
-                <q-card flat bordered class="q-mb-md">
+                <q-card flat bordered class="pharma-card q-mb-md">
                   <q-card-section>
                     <div class="text-subtitle2 text-primary q-mb-md">
                       <q-icon name="info" size="xs" class="q-mr-xs" /> Información Básica
                     </div>
                     <q-input v-model="form.name" label="Nombre *" outlined dense lazy-rules
+                      class="pharma-input-inset"
                       :rules="[required('Nombre')]" :disable="saving">
                       <template #prepend><q-icon name="medical_services" /></template>
                     </q-input>
                     <div class="row q-mt-sm">
                       <div class="col-6 q-pr-sm">
                         <q-input v-model="form.code" label="Código *" outlined dense lazy-rules
+                          class="pharma-input-inset"
                           :rules="[required('Código')]" :disable="saving">
                           <template #prepend><q-icon name="qr_code" /></template>
                           <template #append>
@@ -39,6 +41,7 @@
                       </div>
                       <div class="col-6 q-pl-sm">
                         <q-input v-model="form.pharmaceutical_form" label="Forma Farmacéutica *" outlined dense lazy-rules
+                          class="pharma-input-inset"
                           :rules="[required('Forma Farmacéutica')]" :disable="saving">
                           <template #prepend><q-icon name="science" /></template>
                         </q-input>
@@ -47,7 +50,7 @@
                   </q-card-section>
                 </q-card>
 
-                <q-card flat bordered class="q-mb-md">
+                <q-card flat bordered class="pharma-card q-mb-md">
                   <q-card-section>
                     <div class="text-subtitle2 text-primary q-mb-md">
                       <q-icon name="category" size="xs" class="q-mr-xs" /> Categorización
@@ -55,24 +58,28 @@
                     <div class="row q-col-gutter-sm">
                       <div class="col-6">
                         <q-select v-model="form.category_id" :options="categoryOptions" label="Categoría *" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :rules="[required('Categoría')]" :disable="saving">
                           <template #prepend><q-icon name="folder" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.lab_id" :options="labOptions" label="Laboratorio *" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :rules="[required('Laboratorio')]" :disable="saving">
                           <template #prepend><q-icon name="business" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.type_id" :options="typeOptions" label="Tipo *" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :rules="[required('Tipo')]" :disable="saving">
                           <template #prepend><q-icon name="label" /></template>
                         </q-select>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.presentation_id" :options="presentationOptions" label="Presentación *" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :rules="[required('Presentación')]" :disable="saving">
                           <template #prepend><q-icon name="inventory" /></template>
                         </q-select>
@@ -81,7 +88,7 @@
                   </q-card-section>
                 </q-card>
 
-                <q-card flat bordered class="q-mb-md">
+                <q-card flat bordered class="pharma-card q-mb-md">
                   <q-card-section>
                     <div class="text-subtitle2 text-primary q-mb-md">
                       <q-icon name="image" size="xs" class="q-mr-xs" /> Imagen
@@ -103,7 +110,7 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <q-card flat bordered class="q-mb-md">
+                <q-card flat bordered class="pharma-card q-mb-md">
                   <q-card-section>
                     <div class="text-subtitle2 text-primary q-mb-md">
                       <q-icon name="monetization_on" size="xs" class="q-mr-xs" /> Stock y Precios
@@ -111,18 +118,20 @@
                     <div class="row q-col-gutter-sm">
                       <div class="col-6">
                         <q-input v-model.number="form.stock" label="Stock Inicial *" outlined dense type="number" min="0"
+                          class="pharma-input-inset"
                           :rules="[(v: number) => v >= 0 || '>= 0']" :disable="saving">
                           <template #prepend><q-icon name="inventory_2" /></template>
                         </q-input>
                       </div>
                       <div class="col-6">
                         <q-input v-model.number="form.price" label="Precio S/ *" outlined dense type="number" min="0" step="0.01"
+                          class="pharma-input-inset"
                           :rules="[(v: number) => v > 0 || '> 0']" :disable="saving">
                           <template #prepend><q-icon name="attach_money" /></template>
                         </q-input>
                       </div>
                       <div class="col-12">
-                        <q-input v-model.number="form.min_stock" label="Stock Mínimo" outlined dense type="number" min="0" :disable="saving">
+                        <q-input v-model.number="form.min_stock" label="Stock Mínimo" outlined dense type="number" min="0" class="pharma-input-inset" :disable="saving">
                           <template #prepend><q-icon name="warning" /></template>
                         </q-input>
                       </div>
@@ -130,35 +139,37 @@
                   </q-card-section>
                 </q-card>
 
-                <q-card flat bordered class="q-mb-md">
+                <q-card flat bordered class="pharma-card q-mb-md">
                   <q-card-section>
                     <div class="text-subtitle2 text-primary q-mb-md">
                       <q-icon name="description" size="xs" class="q-mr-xs" /> Información Adicional
                     </div>
                     <div class="row q-col-gutter-sm">
                       <div class="col-12">
-                        <q-input v-model="form.description" label="Descripción" outlined dense type="textarea" rows="3" maxlength="500" :disable="saving" />
+                        <q-input v-model="form.description" label="Descripción" outlined dense type="textarea" rows="3" maxlength="500" class="pharma-input-inset" :disable="saving" />
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.batch" label="N° Lote" outlined dense :disable="saving" />
+                        <q-input v-model="form.batch" label="N° Lote" outlined dense class="pharma-input-inset" :disable="saving" />
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.concentration" label="Concentración" outlined dense hint="500mg, 250ml" :disable="saving" />
+                        <q-input v-model="form.concentration" label="Concentración" outlined dense hint="500mg, 250ml" class="pharma-input-inset" :disable="saving" />
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.expiration_date" label="Fecha Vencimiento" outlined dense type="date" :disable="saving">
+                        <q-input v-model="form.expiration_date" label="Fecha Vencimiento" outlined dense type="date" class="pharma-input-inset" :disable="saving">
                           <template #prepend><q-icon name="event" /></template>
                         </q-input>
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.manufacturing_date" label="Fecha Fabricación" outlined dense type="date" :disable="saving" />
+                        <q-input v-model="form.manufacturing_date" label="Fecha Fabricación" outlined dense type="date" class="pharma-input-inset" :disable="saving" />
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.storage_condition_id" :options="storageOptions" label="Almacenamiento" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :disable="saving" />
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.status" :options="statusOptions" label="Estado *" outlined dense
+                          class="pharma-input-inset"
                           emit-value map-options :rules="[required('Estado')]" :disable="saving" />
                       </div>
                       <div class="col-6">
@@ -177,7 +188,7 @@
           <q-separator />
           <q-card-actions align="right" class="q-pa-md">
             <q-btn flat label="Cancelar" @click="onClose" :disable="saving" />
-            <q-btn type="submit" color="primary" :label="isEdit ? 'Actualizar' : 'Crear'" :loading="saving" unelevated />
+            <q-btn type="submit" color="primary" class="pharma-btn-main" :label="isEdit ? 'Actualizar' : 'Crear'" :loading="saving" unelevated />
           </q-card-actions>
         </q-form>
       </q-card-section>

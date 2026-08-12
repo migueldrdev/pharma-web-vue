@@ -9,61 +9,95 @@
 
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Ingresos</div>
-          <div class="text-h4 text-positive">S/ {{ (summary.total_revenue ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Ingresos"
+          :value="(summary.total_revenue ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="attach_money"
+          color="positive"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Utilidad Bruta</div>
-          <div class="text-h4 text-green-8">S/ {{ (summary.gross_profit ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Utilidad Bruta"
+          :value="(summary.gross_profit ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="account_balance_wallet"
+          color="positive"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Margen</div>
-          <div class="text-h4 text-accent">{{ (summary.profit_margin ?? 0).toFixed(1) }}%</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Margen"
+          :value="(summary.profit_margin ?? 0).toFixed(1)"
+          suffix="%"
+          icon="percent"
+          color="accent"
+          :loading="loading"
+        />
       </div>
     </div>
 
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Costo de Ventas</div>
-          <div class="text-h4 text-orange-8">S/ {{ (summary.cost_of_goods_sold ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Costo de Ventas"
+          :value="(summary.cost_of_goods_sold ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="money_off"
+          color="warning"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Compras</div>
-          <div class="text-h4 text-blue-8">S/ {{ (summary.total_purchases ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Compras"
+          :value="(summary.total_purchases ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="shopping_cart"
+          color="info"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Utilidad Neta</div>
-          <div class="text-h4 text-primary">S/ {{ (summary.net_profit ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Utilidad Neta"
+          :value="(summary.net_profit ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="savings"
+          color="primary"
+          :loading="loading"
+        />
       </div>
     </div>
 
-    <q-card flat bordered class="q-mb-md">
+    <q-card flat bordered class="q-mb-md pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Ingresos Diarios</div>
         <highchart :options="lineChartOptions" />
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered>
+    <q-card flat bordered class="pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Productos Más Rentables</div>
-        <q-table :rows="profitableProducts" :columns="prodColumns" :loading="loading" row-key="id" flat dense>
-          <template #body-cell-revenue="p"><q-td :props="p" class="text-positive">S/ {{ Number(p.value).toFixed(2) }}</q-td></template>
-          <template #body-cell-margin="p"><q-td :props="p">
-            <q-badge :color="Number(p.value) > 30 ? 'positive' : 'warning'" :label="`${Number(p.value).toFixed(1)}%`" />
-          </q-td></template>
+        <q-table :rows="profitableProducts" :columns="prodColumns" :loading="loading" row-key="id" flat class="bg-transparent" dense>
+          <template #body-cell-revenue="p"><q-td :props="p" class="text-teal text-weight-bold">S/ {{ Number(p.value).toFixed(2) }}</q-td></template>
+          <template #body-cell-margin="p">
+            <q-td :props="p">
+              <AppStatusBadge
+                :status="Number(p.value) > 30 ? 'active' : 'warning'"
+                :label="`${Number(p.value).toFixed(1)}%`"
+              />
+            </q-td>
+          </template>
+          <template #no-data>
+            <div class="full-width row flex-center q-pa-md">
+              <AppEmptyState title="No hay datos financieros" description="No se encontraron registros de rentabilidad." icon="analytics" />
+            </div>
+          </template>
         </q-table>
       </q-card-section>
     </q-card>
@@ -73,6 +107,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import AppPageHeader from '@components/shared/AppPageHeader.vue'
+import AppKpiCard from '@components/shared/AppKpiCard.vue'
+import AppEmptyState from '@components/shared/AppEmptyState.vue'
+import AppStatusBadge from '@components/shared/AppStatusBadge.vue'
 import { useFetchHttp } from '@composables/useFetchHttp'
 import { useNotify } from '@composables/useNotify'
 import { useExcelExport } from '@composables/useExcelExport'

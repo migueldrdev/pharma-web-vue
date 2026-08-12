@@ -1,8 +1,8 @@
 <template>
-  <q-page class="q-pa-md">
-    <AppPageHeader title="Productos" subtitle="Gestión de inventario farmacéutico">
+  <q-page class="page-container">
+    <AppPageHeader title="Inventario de Productos" subtitle="Gestión de catálogo, lotes y stock en tiempo real">
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nuevo" @click="openCreate" unelevated />
+        <q-btn color="primary" icon="add" label="Nuevo Producto" @click="openCreate" unelevated class="q-px-md" />
         <q-btn
           v-if="selectedProducts.length"
           color="negative"
@@ -10,19 +10,21 @@
           :label="`Eliminar (${selectedProducts.length})`"
           @click="confirmDeleteMultiple"
           outline
+          class="q-ml-sm"
         />
-        <q-btn icon="refresh" flat round @click="loadProducts" :loading="loading">
-          <q-tooltip>Actualizar</q-tooltip>
+        <q-btn icon="refresh" flat round color="primary" @click="loadProducts" :loading="loading" class="q-ml-sm">
+          <q-tooltip>Actualizar catálogo</q-tooltip>
         </q-btn>
         <q-btn
           icon="psychology"
           flat
           round
-          color="purple"
+          color="accent"
           @click="handleRegenerateAI"
           :loading="regenerating"
+          class="q-ml-sm"
         >
-          <q-tooltip>Regenerar predicciones AI</q-tooltip>
+          <q-tooltip>Regenerar predicciones de IA</q-tooltip>
         </q-btn>
       </template>
     </AppPageHeader>
@@ -37,7 +39,7 @@
       @changed="onFilterChange"
     />
 
-    <q-card flat bordered>
+    <q-card class="pharma-card" flat>
       <q-table
         :rows="products"
         :columns="columns"
@@ -48,27 +50,26 @@
         v-model:selected="selectedProducts"
         selection="multiple"
         flat
+        class="bg-transparent"
         @request="onTableRequest"
       >
         <template #body-cell-stock="{ value }">
           <q-td>
-            <q-chip :color="getStockColor(value)" text-color="white" size="sm" dense>
-              {{ value }}
-            </q-chip>
+            <AppStatusBadge :status="getStockStatus(value)" :label="value.toString()" />
           </q-td>
         </template>
         <template #body-cell-price="{ value }">
           <q-td>
-            <span class="text-weight-medium text-positive">S/ {{ Number(value).toFixed(2) }}</span>
+            <span class="text-weight-bold text-primary">S/ {{ Number(value).toFixed(2) }}</span>
           </q-td>
         </template>
         <template #body-cell-image="{ row }">
           <q-td>
             <q-avatar
               v-if="row.image"
-              size="36px"
+              size="40px"
               rounded
-              class="cursor-pointer"
+              class="cursor-pointer shadow-1"
               @click="
                 previewImage = row.image;
                 showPreview = true;
@@ -76,16 +77,16 @@
             >
               <img :src="row.image" :alt="row.name" />
             </q-avatar>
-            <q-icon v-else name="image_not_supported" size="20px" color="grey-5" />
+            <q-avatar v-else size="40px" rounded color="grey-2" text-color="grey-5" icon="inventory_2" />
           </q-td>
         </template>
         <template #body-cell-actions="{ row }">
-          <q-td class="text-center">
+          <q-td class="text-right">
             <q-btn icon="visibility" size="sm" flat round color="info" @click="viewDetail(row)">
-              <q-tooltip>Ver</q-tooltip>
+              <q-tooltip>Ver Detalles</q-tooltip>
             </q-btn>
             <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(row)">
-              <q-tooltip>Editar</q-tooltip>
+              <q-tooltip>Editar Producto</q-tooltip>
             </q-btn>
             <q-btn icon="delete" size="sm" flat round color="negative" @click="confirmDelete(row)">
               <q-tooltip>Eliminar</q-tooltip>
@@ -93,9 +94,12 @@
           </q-td>
         </template>
         <template #no-data>
-          <div class="text-center q-py-lg text-grey-6">
-            <q-icon name="inventory_2" size="48px" />
-            <div class="text-subtitle1 q-mt-sm">No hay productos disponibles</div>
+          <div class="full-width row flex-center q-pa-xl text-muted">
+            <div class="text-center">
+              <q-icon name="inventory_2" size="64px" color="grey-4" />
+              <div class="text-h6 q-mt-md text-weight-medium">No se encontraron productos</div>
+              <p class="text-body2">Ajusta los filtros o agrega un nuevo producto para comenzar.</p>
+            </div>
           </div>
         </template>
       </q-table>
@@ -134,6 +138,7 @@
 import { ref, onMounted, computed } from 'vue';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
+import AppStatusBadge from '@components/shared/AppStatusBadge.vue';
 import ProductFilters from './components/ProductFilters.vue';
 import ProductForm from './components/ProductForm.vue';
 import { useProducts } from './composables/useProducts';
@@ -261,10 +266,10 @@ function viewDetail(p: IProduct) {
   if (previewImage.value) showPreview.value = true;
 }
 
-function getStockColor(v: number): string {
-  if (v <= 0) return 'negative';
+function getStockStatus(v: number): 'error' | 'warning' | 'active' {
+  if (v <= 0) return 'error';
   if (v <= 10) return 'warning';
-  return 'positive';
+  return 'active';
 }
 
 onMounted(async () => {

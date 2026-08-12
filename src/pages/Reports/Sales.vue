@@ -9,55 +9,66 @@
 
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-caption text-grey">Total Ventas</div>
-            <div class="text-h4 text-primary">S/ {{ summary.total_sales?.toFixed(2) ?? '0.00' }}</div>
-          </q-card-section>
-        </q-card>
+        <AppKpiCard
+          title="Total Ventas"
+          :value="summary.total_sales?.toFixed(2) ?? '0.00'"
+          prefix="S/ "
+          icon="point_of_sale"
+          color="primary"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-caption text-grey">Transacciones</div>
-            <div class="text-h4 text-positive">{{ summary.sales_count ?? 0 }}</div>
-          </q-card-section>
-        </q-card>
+        <AppKpiCard
+          title="Transacciones"
+          :value="summary.sales_count ?? 0"
+          icon="receipt_long"
+          color="positive"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-caption text-grey">Ticket Promedio</div>
-            <div class="text-h4 text-accent">S/ {{ summary.average_ticket?.toFixed(2) ?? '0.00' }}</div>
-          </q-card-section>
-        </q-card>
+        <AppKpiCard
+          title="Ticket Promedio"
+          :value="summary.average_ticket?.toFixed(2) ?? '0.00'"
+          prefix="S/ "
+          icon="analytics"
+          color="accent"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-caption text-grey">Producto Top</div>
-            <div class="text-h6 text-warning">{{ topProductName }}</div>
-          </q-card-section>
-        </q-card>
+        <AppKpiCard
+          title="Producto Top"
+          :value="topProductName"
+          icon="medication"
+          color="warning"
+          :loading="loading"
+        />
       </div>
     </div>
 
-    <q-card flat bordered class="q-mb-md">
+    <q-card flat bordered class="q-mb-md pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Ventas por Período</div>
         <highchart :options="lineChartOptions" />
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered>
+    <q-card flat bordered class="pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Top 10 Productos</div>
-        <q-table :rows="topProducts" :columns="productColumns" :loading="loading" row-key="id" flat dense>
+        <q-table :rows="topProducts" :columns="productColumns" :loading="loading" row-key="id" flat class="bg-transparent" dense>
           <template #body-cell-total_quantity="p">
-            <q-td :props="p"><q-badge color="primary" :label="p.value" /></q-td>
+            <q-td :props="p" class="text-weight-bold">{{ p.value }}</q-td>
           </template>
           <template #body-cell-total_sales="p">
-            <q-td :props="p"><span class="text-green-8">S/ {{ Number(p.value).toFixed(2) }}</span></q-td>
+            <q-td :props="p"><span class="text-teal text-weight-bold">S/ {{ Number(p.value).toFixed(2) }}</span></q-td>
+          </template>
+          <template #no-data>
+            <div class="full-width row flex-center q-pa-md">
+              <AppEmptyState title="No hay datos de ventas" description="No se encontraron ventas para este período." icon="inventory_2" />
+            </div>
           </template>
         </q-table>
       </q-card-section>
@@ -68,6 +79,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import AppPageHeader from '@components/shared/AppPageHeader.vue'
+import AppKpiCard from '@components/shared/AppKpiCard.vue'
+import AppEmptyState from '@components/shared/AppEmptyState.vue'
 import { useFetchHttp } from '@composables/useFetchHttp'
 import { useNotify } from '@composables/useNotify'
 import { useExcelExport } from '@composables/useExcelExport'

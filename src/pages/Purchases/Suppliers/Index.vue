@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
+import AppFormDialog from '@components/shared/AppFormDialog.vue';
+import AppEmptyState from '@components/shared/AppEmptyState.vue';
 import { useValidation } from '@composables/useValidation';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { supplierResources } from '../api-resource/purchaseResource';
@@ -28,7 +30,7 @@ const columns = [
   { name: 'name', label: 'Nombre', field: 'name', align: 'left' as const },
   { name: 'email', label: 'Email', field: 'email', align: 'left' as const },
   { name: 'phone', label: 'Teléfono', field: 'phone', align: 'left' as const },
-  { name: 'actions', label: '', field: 'actions', align: 'center' as const, style: 'width: 80px' },
+  { name: 'actions', label: '', field: 'actions', align: 'center' as const, style: 'width: 100px' },
 ];
 
 async function load() {
@@ -40,7 +42,7 @@ async function load() {
     const payload = res.data as unknown as { data?: ISupplier[] };
     items.value = payload?.data ?? (Array.isArray(res.data) ? res.data : []);
   } catch {
-    error('Error al cargar');
+    error('Error al cargar proveedores');
   } finally {
     loading.value = false;
   }
@@ -51,6 +53,7 @@ function openCreate() {
   form.value = { name: '', email: '', phone: '', address: '' };
   showDialog.value = true;
 }
+
 function openEdit(s: ISupplier) {
   editing.value = true;
   current.value = s;
@@ -65,18 +68,18 @@ async function save() {
         ...supplierResources.update(current.value.id),
         data: form.value as unknown as Record<string, unknown>,
       });
-      success('Proveedor actualizado');
+      success('Proveedor actualizado correctamente');
     } else {
       await fetchHttpResource({
         ...supplierResources.create,
         data: form.value as unknown as Record<string, unknown>,
       });
-      success('Proveedor creado');
+      success('Proveedor registrado con éxito');
     }
     showDialog.value = false;
     await load();
   } catch {
-    error('Error al guardar');
+    error('Error al guardar el proveedor');
   }
 }
 
@@ -84,37 +87,50 @@ function confirmDelete(s: ISupplier) {
   deleting.value = s;
   showDelete.value = true;
 }
+
 async function onDelete() {
   if (!deleting.value) return;
   try {
     await fetchHttpResource(supplierResources.delete(deleting.value.id));
-    success('Eliminado');
+    success('Proveedor eliminado exitosamente');
     await load();
   } catch {
-    error('Error al eliminar');
+    error('Error al eliminar el proveedor');
   } finally {
     showDelete.value = false;
   }
 }
 
-const deleteMsg = computed(() => `¿Eliminar "${deleting.value?.name ?? ''}"?`);
+const deleteMsg = computed(() => `¿Está seguro de eliminar el proveedor "${deleting.value?.name ?? ''}"? Esta acción no se puede deshacer.`);
 
 onMounted(() => load());
 </script>
 
 <template>
   <q-page class="q-pa-md">
-    <AppPageHeader title="Proveedores" subtitle="Gestión de proveedores">
+    <AppPageHeader 
+      title="Proveedores" 
+      subtitle="Gestión de proveedores y distribuidoras farmacéuticas"
+    >
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nuevo" unelevated @click="openCreate" />
+        <q-btn 
+          class="pharma-btn-main"
+          color="primary" 
+          icon="add" 
+          label="Nuevo Proveedor" 
+          unelevated 
+          @click="openCreate" 
+        />
         <q-btn icon="refresh" flat round @click="load()" :loading="loading" />
       </template>
     </AppPageHeader>
-    <q-card flat bordered>
+
+    <q-card class="pharma-card" flat>
       <q-card-section>
         <q-input
           v-model="filter"
-          label="Buscar"
+          label="Buscar por nombre o RUC..."
+          class="pharma-input-inset"
           outlined
           dense
           clearable
@@ -124,10 +140,39 @@ onMounted(() => load());
           <template #prepend><q-icon name="search" /></template>
         </q-input>
       </q-card-section>
-      <q-table :rows="items" :columns="columns" row-key="id" :loading="loading" flat>
+
+      <q-table 
+        :rows="items" 
+        :columns="columns" 
+        row-key="id" 
+        :loading="loading" 
+        class="bg-transparent"
+        flat
+      >
+        <template #body-cell-name="props">
+          <q-td :props="props" class="text-weight-bold">
+            <q-icon name="mdi-truck-delivery-outline" size="xs" color="primary" class="q-mr-sm" />
+            {{ props.row.name }}
+          </q-td>
+        </template>
+
+        <template #body-cell-email="props">
+          <q-td :props="props" class="text-grey-8">
+            {{ props.row.email || '-' }}
+          </q-td>
+        </template>
+
+        <template #body-cell-phone="props">
+          <q-td :props="props" class="text-grey-8">
+            {{ props.row.phone || '-' }}
+          </q-td>
+        </template>
+
         <template #body-cell-actions="{ row }">
           <q-td class="text-center">
-            <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(row)" />
+            <q-btn icon="edit" size="sm" flat round color="secondary" @click="openEdit(row)">
+              <q-tooltip>Editar Proveedor</q-tooltip>
+            </q-btn>
             <q-btn
               icon="delete"
               size="sm"
@@ -135,39 +180,83 @@ onMounted(() => load());
               round
               color="negative"
               @click="confirmDelete(row)"
-            />
+            >
+              <q-tooltip>Eliminar Proveedor</q-tooltip>
+            </q-btn>
           </q-td>
+        </template>
+
+        <template #no-data>
+          <div class="full-width row flex-center q-pa-md">
+            <AppEmptyState
+              icon="mdi-account-cancel-outline"
+              title="Sin proveedores registrados"
+              description="No se encontraron proveedores o distribuidoras farmacéuticas en el sistema."
+            >
+              <template #actions>
+                <q-btn
+                  class="pharma-btn-main"
+                  color="primary"
+                  icon="add"
+                  label="Nuevo Proveedor"
+                  unelevated
+                  @click="openCreate"
+                />
+              </template>
+            </AppEmptyState>
+          </div>
         </template>
       </q-table>
     </q-card>
 
-    <q-dialog v-model="showDialog">
-      <q-card style="width: 500px; max-width: 90vw">
-        <q-bar class="bg-primary text-white"
-          ><div>{{ editing ? 'Editar' : 'Nuevo' }} Proveedor</div>
-          <q-space /><q-btn dense flat icon="close" v-close-popup
-        /></q-bar>
-        <q-card-section>
+    <AppFormDialog
+      v-model="showDialog"
+      :title="editing ? 'Editar Proveedor' : 'Nuevo Proveedor'"
+      :loading="loading"
+      width="600px"
+      @submit="save"
+    >
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-6">
           <q-input
             v-model="form.name"
-            label="Nombre *"
+            label="Razón Social / Nombre *"
+            class="pharma-input-inset"
             outlined
             dense
             :rules="[required('Nombre')]"
-            class="q-mb-sm"
           />
-          <q-input v-model="form.email" label="Email" outlined dense class="q-mb-sm" />
-          <q-input v-model="form.phone" label="Teléfono" outlined dense class="q-mb-sm" />
-          <q-input v-model="form.address" label="Dirección" outlined dense />
-        </q-card-section>
-        <q-card-actions align="right"
-          ><q-btn flat label="Cancelar" v-close-popup /><q-btn
-            color="primary"
-            label="Guardar"
-            @click="save"
-        /></q-card-actions>
-      </q-card>
-    </q-dialog>
+        </div>
+        <div class="col-12 col-md-6">
+          <q-input 
+            v-model="form.email" 
+            label="Correo Electrónico" 
+            class="pharma-input-inset"
+            outlined 
+            dense 
+            type="email"
+          />
+        </div>
+        <div class="col-12 col-md-6">
+          <q-input 
+            v-model="form.phone" 
+            label="Teléfono / Celular" 
+            class="pharma-input-inset"
+            outlined 
+            dense 
+          />
+        </div>
+        <div class="col-12 col-md-6">
+          <q-input 
+            v-model="form.address" 
+            label="Dirección" 
+            class="pharma-input-inset"
+            outlined 
+            dense 
+          />
+        </div>
+      </div>
+    </AppFormDialog>
 
     <AppConfirmDialog
       v-model="showDelete"

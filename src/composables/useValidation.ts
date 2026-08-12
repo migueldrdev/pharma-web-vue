@@ -1,5 +1,4 @@
-type ValidationRule = (val: unknown) => string | boolean
-type RuleBuilder = (...args: any[]) => ValidationRule
+type ValidationRule = (val: unknown) => string | boolean;
 
 interface ValidationRules {
   required: (label?: string) => ValidationRule

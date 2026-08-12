@@ -1,6 +1,6 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { Loading } from 'quasar';
-import { useFetchHttp, type IHttpResponse } from '@composables/useFetchHttp';
+import { useFetchHttp } from '@composables/useFetchHttp';
 import { productResources } from '../api-resource/productResource';
 import { useNotify } from '@composables/useNotify';
 import type { IProduct, IProductFilters, IProductPagination } from '../interfaces/IProduct';
@@ -55,7 +55,7 @@ export function useProducts() {
         products.value = payload?.data ?? [];
         pagination.value.rowsNumber = payload?.total ?? 0;
       }
-    } catch (_e: unknown) {
+    } catch {
       error('Error al cargar productos');
     } finally {
       loading.value = false;

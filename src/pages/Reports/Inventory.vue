@@ -9,51 +9,70 @@
 
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Total Productos</div>
-          <div class="text-h4 text-primary">{{ summary.total_products ?? 0 }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Total Productos"
+          :value="summary.total_products ?? 0"
+          icon="inventory_2"
+          color="primary"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Stock Total</div>
-          <div class="text-h4 text-positive">{{ summary.total_stock ?? 0 }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Stock Total"
+          :value="summary.total_stock ?? 0"
+          icon="widgets"
+          color="positive"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Stock Bajo</div>
-          <div class="text-h4 text-warning">{{ summary.low_stock_count ?? 0 }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Stock Bajo"
+          :value="summary.low_stock_count ?? 0"
+          icon="warning"
+          color="warning"
+          :loading="loading"
+        />
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card flat bordered><q-card-section>
-          <div class="text-caption text-grey">Valor Inventario</div>
-          <div class="text-h4 text-green-8">S/ {{ (summary.total_value ?? 0).toFixed(2) }}</div>
-        </q-card-section></q-card>
+        <AppKpiCard
+          title="Valor Inventario"
+          :value="(summary.total_value ?? 0).toFixed(2)"
+          prefix="S/ "
+          icon="attach_money"
+          color="positive"
+          :loading="loading"
+        />
       </div>
     </div>
 
-    <q-card flat bordered class="q-mt-md q-mb-md">
+    <q-card flat bordered class="q-mt-md q-mb-md pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Stock por Categoría</div>
         <highchart :options="pieChartOptions" />
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered>
+    <q-card flat bordered class="pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Productos con Stock Bajo</div>
-        <q-table :rows="lowStockProducts" :columns="columns" :loading="loading" row-key="id" flat dense>
+        <q-table :rows="lowStockProducts" :columns="columns" :loading="loading" row-key="id" flat class="bg-transparent" dense>
           <template #body-cell-stock="props">
             <q-td :props="props">
-              <q-chip :color="Number(props.value) <= 5 ? 'negative' : 'warning'" text-color="white" size="sm">
-                {{ props.value }}
-              </q-chip>
+              <AppStatusBadge
+                :status="Number(props.value) <= 5 ? 'critical' : 'warning'"
+                :label="String(props.value)"
+              />
             </q-td>
           </template>
           <template #body-cell-cost_price="props">
             <q-td :props="props">S/ {{ Number(props.value).toFixed(2) }}</q-td>
+          </template>
+          <template #no-data>
+            <div class="full-width row flex-center q-pa-md">
+              <AppEmptyState title="No hay productos con stock bajo" description="El inventario se encuentra en óptimas condiciones." icon="check_circle" iconColor="positive" />
+            </div>
           </template>
         </q-table>
       </q-card-section>
@@ -64,6 +83,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import AppPageHeader from '@components/shared/AppPageHeader.vue'
+import AppKpiCard from '@components/shared/AppKpiCard.vue'
+import AppEmptyState from '@components/shared/AppEmptyState.vue'
+import AppStatusBadge from '@components/shared/AppStatusBadge.vue'
 import { useFetchHttp } from '@composables/useFetchHttp'
 import { useNotify } from '@composables/useNotify'
 import { useExcelExport } from '@composables/useExcelExport'

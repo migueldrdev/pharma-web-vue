@@ -5,66 +5,75 @@ import { usePermissionsStore } from './permissions';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
 import type { IUser } from '@/interfaces/IUser';
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref<IUser | null>(null);
-  const token = ref<string | null>(localStorage.getItem('token'));
+export const useAuthStore = defineStore(
+  'auth',
+  () => {
+    const user = ref<IUser | null>(null);
+    const token = ref<string | null>(localStorage.getItem('token'));
 
-  const isAuthenticated = computed(() => !!token.value && !!user.value);
-
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const response = await api.post('/login', { email, password });
-    const { token: newToken, user: userData } = response.data.data;
-
-    token.value = newToken;
-    user.value = userData;
-    localStorage.setItem('token', newToken);
-    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-
-    return true;
-  };
-
-  async function fetchUser() {
-    try {
-      const { data } = await api.get('/user');
-      user.value = data.data ?? data;
-    } catch {
-      user.value = null;
-      token.value = null;
+    if (token.value) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
     }
-  }
 
-  const logout = async (router?: { push: (path: string) => void }) => {
-    try {
-      await api.post('/logout');
-    } catch (_e: unknown) {
-      // Ignorar error si el token ya expiró
-    } finally {
-      user.value = null;
-      token.value = null;
-      localStorage.removeItem('token');
-      api.defaults.headers.common['Authorization'] = '';
-      if (router) {
-        router.push('/login');
-      } else {
-        window.location.href = '/login';
+    const isAuthenticated = computed(() => !!token.value && !!user.value);
+
+    const login = async (email: string, password: string): Promise<boolean> => {
+      const response = await api.post('/login', { email, password });
+      const { token: newToken, user: userData } = response.data.data;
+
+      token.value = newToken;
+      user.value = userData;
+      localStorage.setItem('token', newToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+      return true;
+    };
+
+    async function fetchUser() {
+      try {
+        const { data } = await api.get('/user');
+        user.value = data.data ?? data;
+      } catch {
+        user.value = null;
+        token.value = null;
       }
     }
-  };
 
-  return {
-    user,
-    token,
-    isAuthenticated,
-    login,
-    logout,
-    fetchUser,
-  };
-}, {
-  persist: {
-    storage: localStorage,
-    pick: ['user', 'token'],
+    const logout = async (router?: { push: (path: string) => void }) => {
+      try {
+        await api.post('/logout');
+      } catch (_e: unknown) {
+        // Ignorar error si el token ya expiró
+        console.log(_e);
+      } finally {
+        user.value = null;
+        token.value = null;
+        localStorage.removeItem('token');
+        api.defaults.headers.common['Authorization'] = '';
+        if (router) {
+          router.push('/login');
+        } else {
+          window.location.href = '/login';
+        }
+      }
+    };
+
+    return {
+      user,
+      token,
+      isAuthenticated,
+      login,
+      logout,
+      fetchUser,
+    };
   },
-});
+  {
+    persist: {
+      storage: localStorage,
+      pick: ['user', 'token'],
+    },
+  },
+);
 
 export const useMenuStore = defineStore('menu', () => {
   const permissionsStore = usePermissionsStore();

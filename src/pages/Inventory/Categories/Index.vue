@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useNotify } from '@composables/useNotify';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
+import AppFormDialog from '@components/shared/AppFormDialog.vue';
+import AppEmptyState from '@components/shared/AppEmptyState.vue';
 import { useValidation } from '@composables/useValidation';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { resources } from '@api-resources/GeneralApiResource';
@@ -25,11 +27,12 @@ const current = ref<Category | null>(null);
 const formName = ref('');
 const showDelete = ref(false);
 const deleting = ref<Category | null>(null);
+const submitting = ref(false);
 
 const columns = [
   { name: 'id', label: '#', field: 'id', align: 'left' as const },
   { name: 'name', label: 'Nombre', field: 'name', align: 'left' as const },
-  { name: 'actions', label: '', field: 'actions', align: 'center' as const, style: 'width: 80px' },
+  { name: 'actions', label: '', field: 'actions', align: 'right' as const, style: 'width: 100px' },
 ];
 
 async function load() {
@@ -37,9 +40,9 @@ async function load() {
   try {
     const params: Record<string, unknown> = { page: 1, per_page: 50 };
     if (filter.value) params.search = filter.value;
-    const res = await fetchHttpResource<Category[]>({ ...resources.allCategories, params }, false);
-    const payload = res.data as unknown as { data?: Category[] };
-    items.value = payload?.data ?? (Array.isArray(res.data) ? (res.data as Category[]) : []);
+    const res = await fetchHttpResource<Category[] | { data: Category[] }>({ ...resources.allCategories, params }, false);
+    const rawData = res.data;
+    items.value = Array.isArray(rawData) ? rawData : (rawData as { data?: Category[] })?.data ?? [];
   } catch {
     error('Error al cargar');
   } finally {
@@ -60,6 +63,7 @@ function openEdit(c: Category) {
 }
 
 async function save() {
+  submitting.value = true;
   try {
     if (editing.value && current.value) {
       await fetchHttpResource({
@@ -76,6 +80,8 @@ async function save() {
     await load();
   } catch {
     error('Error al guardar');
+  } finally {
+    submitting.value = false;
   }
 }
 
@@ -106,65 +112,97 @@ onMounted(() => load());
 
 <template>
   <q-page class="q-pa-md">
-    <AppPageHeader title="Categorías" subtitle="Clasificación de productos">
+    <AppPageHeader title="Categorías" subtitle="Clasificación de productos farmacéuticos">
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nueva" unelevated @click="openCreate" />
-        <q-btn icon="refresh" flat round @click="load()" :loading="loading" />
+        <q-btn color="primary" class="pharma-btn-main" icon="add" label="Nueva Categoría" unelevated @click="openCreate" />
+        <q-btn icon="refresh" flat round @click="load()" :loading="loading" class="q-ml-sm" />
       </template>
     </AppPageHeader>
-    <q-card flat bordered>
-      <q-card-section>
+
+    <q-card flat bordered class="pharma-card q-mt-md">
+      <q-card-section class="q-pb-none">
         <q-input
           v-model="filter"
-          label="Buscar"
+          label="Buscar por nombre..."
           outlined
           dense
           clearable
           debounce="400"
+          class="pharma-input-inset"
           @update:model-value="load()"
         >
           <template #prepend><q-icon name="search" /></template>
         </q-input>
       </q-card-section>
-      <q-table :rows="items" :columns="columns" row-key="id" :loading="loading" flat>
-        <template #body-cell-actions="{ row }">
-          <q-td class="text-center">
-            <q-btn icon="edit" size="sm" flat round color="warning" @click="openEdit(row)" />
-            <q-btn
-              icon="delete"
-              size="sm"
-              flat
-              round
-              color="negative"
-              @click="confirmDelete(row)"
-            />
-          </q-td>
-        </template>
-      </q-table>
+      
+      <q-card-section>
+        <q-table 
+          :rows="items" 
+          :columns="columns" 
+          row-key="id" 
+          :loading="loading" 
+          flat 
+          class="bg-transparent"
+        >
+          <template #body-cell-id="props">
+            <q-td :props="props">
+              <span class="text-weight-medium text-grey-8">#{{ props.value }}</span>
+            </q-td>
+          </template>
+          
+          <template #body-cell-name="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="category" size="xs" color="primary" class="q-mr-sm" />
+                <span class="text-weight-bold">{{ props.value }}</span>
+              </div>
+            </q-td>
+          </template>
+
+          <template #body-cell-actions="{ row }">
+            <q-td class="text-right">
+              <q-btn icon="edit" size="sm" flat round color="secondary" @click="openEdit(row)">
+                <q-tooltip>Editar</q-tooltip>
+              </q-btn>
+              <q-btn icon="delete" size="sm" flat round color="negative" @click="confirmDelete(row)">
+                <q-tooltip>Eliminar</q-tooltip>
+              </q-btn>
+            </q-td>
+          </template>
+          
+          <template #no-data>
+            <div class="full-width row flex-center q-pa-md">
+              <AppEmptyState
+                icon="category"
+                title="Sin categorías"
+                :description="filter ? 'No se encontraron categorías que coincidan con la búsqueda.' : 'No hay categorías registradas en el sistema.'"
+              />
+            </div>
+          </template>
+        </q-table>
+      </q-card-section>
     </q-card>
-    <q-dialog v-model="showDialog">
-      <q-card style="width: 400px; max-width: 90vw">
-        <q-bar class="bg-primary text-white"
-          ><div>{{ editing ? 'Editar' : 'Nueva' }} Categoría</div>
-          <q-space /><q-btn dense flat icon="close" v-close-popup
-        /></q-bar>
-        <q-card-section>
-          <q-input
-            v-model="formName"
-            label="Nombre *"
-            outlined
-            dense
-            :rules="[required('Nombre')]"
-          />
-        </q-card-section>
-        <q-card-actions align="right"
-          ><q-btn flat label="Cancelar" v-close-popup /><q-btn
-            color="primary"
-            label="Guardar"
-            @click="save"
-        /></q-card-actions>
-      </q-card>
-    </q-dialog>
+
+    <AppFormDialog
+      v-model="showDialog"
+      :title="editing ? 'Editar Categoría' : 'Nueva Categoría'"
+      :loading="submitting"
+      @submit="save"
+    >
+      <div class="q-gutter-md">
+        <q-input
+          v-model="formName"
+          label="Nombre de categoría *"
+          outlined
+          dense
+          class="pharma-input-inset"
+          :rules="[required('Nombre')]"
+        >
+          <template #prepend><q-icon name="label" /></template>
+        </q-input>
+      </div>
+    </AppFormDialog>
+
     <AppConfirmDialog
       v-model="showDelete"
       title="Eliminar categoría"
@@ -175,3 +213,19 @@ onMounted(() => load());
     />
   </q-page>
 </template>
+
+<style lang="scss" scoped>
+.pharma-card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+.pharma-btn-main {
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0 16px;
+}
+.pharma-input-inset {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+</style>
