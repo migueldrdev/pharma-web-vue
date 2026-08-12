@@ -1,30 +1,32 @@
 <script setup lang="ts" generic="TRow extends Record<string, unknown> = Record<string, unknown>">
-import { ref, computed } from 'vue'
-import type { QTableProps } from 'quasar'
+import { ref, computed } from 'vue';
+import type { QTableProps } from 'quasar';
 import type {
   AppDataTableColumn,
   AppDataTableFilter,
   AppDataTableAction,
   TableParams,
   TableResponse,
-} from './AppDataTable.types'
-import { useDialog } from '@/composables/useDialog'
-import { useNotify } from '@/composables/useNotify'
+} from './AppDataTable.types';
+import { useDialog } from '@/composables/useDialog';
+// import { useNotify } from '@/composables/useNotify';
 
 const props = withDefaults(
   defineProps<{
-    columns: (string | AppDataTableColumn<TRow>)[]
-    fetchFunction: (params: TableParams) => Promise<{ success: boolean; data: TableResponse<TRow> }>
-    filters?: AppDataTableFilter[]
-    actions?: AppDataTableAction<TRow>[]
-    selectable?: boolean
-    title?: string
-    subtitle?: string
-    dense?: boolean
-    defaultSortBy?: string
-    defaultDescending?: boolean
-    rowsPerPageOptions?: number[]
-    rowKey?: string
+    columns: (string | AppDataTableColumn<TRow>)[];
+    fetchFunction: (
+      params: TableParams,
+    ) => Promise<{ success: boolean; data: TableResponse<TRow> }>;
+    filters?: AppDataTableFilter[];
+    actions?: AppDataTableAction<TRow>[];
+    selectable?: boolean;
+    title?: string;
+    subtitle?: string;
+    dense?: boolean;
+    defaultSortBy?: string;
+    defaultDescending?: boolean;
+    rowsPerPageOptions?: number[];
+    rowKey?: string;
   }>(),
   {
     filters: () => [],
@@ -36,122 +38,124 @@ const props = withDefaults(
     rowsPerPageOptions: () => [10, 15, 25, 50],
     rowKey: 'id',
   },
-)
+);
 
 const emit = defineEmits<{
-  'on-select': [selected: TRow[]]
-  'on-action': [action: string, row: TRow]
-  'on-refresh': []
-}>()
+  'on-select': [selected: TRow[]];
+  'on-action': [action: string, row: TRow];
+  'on-refresh': [];
+}>();
 
-const { confirmDelete } = useDialog()
-const { success } = useNotify()
+const { confirmDelete } = useDialog();
+// const { success } = useNotify();
 
-const rows = ref<TRow[]>([])
-const loading = ref<boolean>(false)
-const selected = ref<readonly TRow[]>([])
-const searchFilter = ref<string>('')
+const rows = ref<TRow[]>([]);
+const loading = ref<boolean>(false);
+const selected = ref<readonly TRow[]>([]);
+const searchFilter = ref<string>('');
 
 const pagination = ref<{
-  page: number
-  rowsPerPage: number
-  sortBy: string
-  descending: boolean
-  rowsNumber: number
+  page: number;
+  rowsPerPage: number;
+  sortBy: string;
+  descending: boolean;
+  rowsNumber: number;
 }>({
   page: 1,
-  rowsPerPage: props.rowsPerPageOptions![0] ?? 15,
+  rowsPerPage: props.rowsPerPageOptions[0] ?? 15,
   sortBy: props.defaultSortBy ?? 'id',
   descending: props.defaultDescending ?? true,
   rowsNumber: 0,
-})
+});
 
 const qColumns = computed<QTableProps['columns']>(() =>
   props.columns.map((col) => {
     if (typeof col === 'string') {
-      return { name: col, label: col, field: col, align: 'left' as const, sortable: true }
+      return { name: col, label: col, field: col, align: 'left' as const, sortable: true };
     }
-    return col as unknown as NonNullable<QTableProps['columns']>[number]
+    return col as unknown as NonNullable<QTableProps['columns']>[number];
   }),
-)
+);
 
 const colNames = computed<string[]>(() =>
   props.columns.map((col) => (typeof col === 'string' ? col : col.name)),
-)
+);
 
 function getFieldValue(row: TRow, field: string | ((r: TRow) => unknown)): unknown {
-  if (typeof field === 'function') return field(row)
-  return row[field]
+  if (typeof field === 'function') return field(row);
+  return row[field];
 }
 
-async function onRequest(reqProps: { pagination: QTableProps['pagination']; filter?: string }): Promise<void> {
-  loading.value = true
+async function onRequest(reqProps: {
+  pagination: QTableProps['pagination'];
+  filter?: string;
+}): Promise<void> {
+  loading.value = true;
   try {
-    const pg = reqProps.pagination ?? { page: 1, rowsPerPage: 15 }
-    const page: number = pg.page ?? 1
-    const rowsPerPage: number = pg.rowsPerPage ?? 15
-    const sortBy: string = String(pg.sortBy ?? pagination.value.sortBy)
-    const descending: boolean = Boolean(pg.descending ?? pagination.value.descending)
+    const pg = reqProps.pagination ?? { page: 1, rowsPerPage: 15 };
+    const page: number = pg.page ?? 1;
+    const rowsPerPage: number = pg.rowsPerPage ?? 15;
+    const sortBy: string = String(pg.sortBy ?? pagination.value.sortBy);
+    const descending: boolean = Boolean(pg.descending ?? pagination.value.descending);
 
     const result = await props.fetchFunction({
       pagination: {
         page,
-        rowsPerPage: rowsPerPage!,
+        rowsPerPage: rowsPerPage,
         sortBy,
         descending,
         rowsNumber: 0,
       },
       filter: searchFilter.value || undefined,
-    })
+    });
 
     if (result.success) {
-      rows.value = result.data.data as TRow[]
+      rows.value = result.data.data;
       pagination.value = {
         page,
-        rowsPerPage: rowsPerPage!,
+        rowsPerPage: rowsPerPage,
         sortBy,
         descending,
         rowsNumber: result.data.total,
-      }
+      };
     }
   } catch {
-    rows.value = []
+    rows.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function onFilterChange(): void {
-  pagination.value.page = 1
-  loadData()
+  pagination.value.page = 1;
+  loadData();
 }
 
 function refresh(): void {
-  emit('on-refresh')
-  loadData()
+  emit('on-refresh');
+  loadData();
 }
 
 function loadData(): void {
-  void onRequest({ pagination: pagination.value })
+  void onRequest({ pagination: pagination.value });
 }
 
 async function handleAction(action: AppDataTableAction<TRow>, row: TRow): Promise<void> {
   if (action.name === 'delete') {
-    const rawLabel = getFieldValue(row, 'name') ?? getFieldValue(row, 'id') ?? ''
-    const identifier = typeof rawLabel === 'string' || typeof rawLabel === 'number' ? String(rawLabel) : ''
-    const confirmed = await confirmDelete(
-      `el registro "${identifier}"`,
-    )
-    if (!confirmed) return
+    const rawLabel = getFieldValue(row, 'name') ?? getFieldValue(row, 'id') ?? '';
+    const identifier =
+      typeof rawLabel === 'string' || typeof rawLabel === 'number' ? String(rawLabel) : '';
+    const confirmed = await confirmDelete(`el registro "${identifier}"`);
+    if (!confirmed) return;
   }
-  emit('on-action', action.name, row)
+  emit('on-action', action.name, row);
 }
 
 function showAction(action: AppDataTableAction<TRow>, row: TRow): boolean {
-  return action.condition ? action.condition(row) : true
+  return action.condition ? action.condition(row) : true;
 }
 
-defineExpose({ rows, loading, refresh, loadData, pagination, selected, onFilterChange })
+defineExpose({ rows, loading, refresh, loadData, pagination, selected, onFilterChange });
 </script>
 
 <template>
@@ -185,7 +189,7 @@ defineExpose({ rows, loading, refresh, loadData, pagination, selected, onFilterC
           <template v-for="filter in filters" :key="filter.name">
             <q-input
               v-if="filter.type === 'text' || filter.type === 'number'"
-              v-model="(filter.model as string | number)"
+              v-model="filter.model as string | number"
               :label="filter.label"
               :dense="filter.dense ?? true"
               :type="filter.type"
@@ -196,7 +200,7 @@ defineExpose({ rows, loading, refresh, loadData, pagination, selected, onFilterC
             />
             <q-select
               v-else-if="filter.type === 'select'"
-              v-model="(filter.model as string | number)"
+              v-model="filter.model as string | number"
               :label="filter.label"
               :options="filter.options"
               :dense="filter.dense ?? true"

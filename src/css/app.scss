@@ -10,6 +10,8 @@
 
 .page-container {
   padding: 16px;
+  background-color: var(--surface-base);
+  min-height: 100vh;
 }
 
 @media (min-width: 600px) {
@@ -23,4 +25,48 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* --- PharmaCare Design System Utilities --- */
+
+.pharma-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.pharma-input-inset {
+  .q-field__control {
+    background-color: var(--surface-base) !important;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    
+    &:before, &:after {
+      display: none; /* Ocultamos los bordes por defecto de quasar en inputs filled/outlined */
+    }
+  }
+
+  &.q-field--focused .q-field__control {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px rgba(0, 180, 166, 0.1);
+  }
+}
+
+.pharma-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-subtle);
+  
+  .body--dark & {
+    background: rgba(30, 30, 30, 0.7);
+  }
 }

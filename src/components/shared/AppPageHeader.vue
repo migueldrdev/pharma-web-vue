@@ -10,10 +10,10 @@ defineSlots<{
 </script>
 
 <template>
-  <div class="row items-center justify-between q-mb-md">
+  <div class="app-page-header row items-center justify-between q-mb-lg q-pb-sm">
     <div class="col">
-      <h4 class="q-my-none text-primary">{{ title }}</h4>
-      <p v-if="subtitle" class="text-grey-7 q-mt-xs q-mb-none">
+      <h4 class="text-h4 text-weight-bold text-primary q-my-none">{{ title }}</h4>
+      <p v-if="subtitle" class="text-subtitle1 text-muted q-mt-xs q-mb-none">
         {{ subtitle }}
       </p>
     </div>
@@ -22,3 +22,9 @@ defineSlots<{
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.app-page-header {
+  border-bottom: 1px solid var(--border-subtle);
+}
+</style>

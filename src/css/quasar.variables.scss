@@ -12,19 +12,19 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-// Paleta de colores Quasar — Tema Farmacéutico
-$primary: #00b4a6;
+// Paleta de colores Quasar — Tema Farmacéutico (PharmaCare)
+$primary: #00B4A6;
 $primary-dark: #008e83;
-$secondary: #26a69a;
-$accent: #ff9500;
+$secondary: #1890FF;
+$accent: #6C5CE7;
 
 $dark: #1d1d1d;
 $dark-page: #121212;
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+$positive: #52C41A;
+$negative: #FF4D4F; // o #FF6B6B
+$info: #1890FF;
+$warning: #FF9500;
 
 // Variables semánticas adicionales (compatibilidad con código existente)
 $primary-color: $primary;
@@ -35,5 +35,25 @@ $dark-bg: $dark;
 $text-primary: #2c3e50;
 $text-secondary: #7f8c8d;
 $border-color: #e9ecef;
-$light-bg: #f8fffe;
+$light-bg: #f8fafc;
 $dark-surface: #2d2d2d;
+
+:root {
+  --surface-base: #f8fafc;
+  --surface-card: #ffffff;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-focus: rgba(0, 180, 166, 0.5);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.03);
+}
+
+.body--dark {
+  --surface-base: #121212;
+  --surface-card: #1e1e1e;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-focus: rgba(0, 180, 166, 0.7);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.4);
+}

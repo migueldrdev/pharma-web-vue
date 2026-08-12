@@ -1,61 +1,87 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import { Screen } from 'quasar';
-
-const modelValue = defineModel<boolean>({ required: true });
-
-defineProps<{
-  title: string;
-  persistent?: boolean;
-  width?: string;
-}>();
-
-const emit = defineEmits<{
-  submit: [];
-}>();
-
-const formRef = ref<HTMLFormElement>();
-
-function onHide() {
-  modelValue.value = false;
-}
-
-function onSubmit() {
-  emit('submit');
-}
-
-defineExpose({ formRef, close: onHide });
-</script>
-
 <template>
-  <q-dialog
-    v-model="modelValue"
-    :persistent="persistent ?? true"
-    :maximized="Screen.lt.md"
-    transition-show="slide-up"
-    transition-hide="slide-down"
-    @hide="onHide"
-  >
-    <q-card :style="{ width: Screen.lt.md ? '100%' : (width ?? '700px'), maxWidth: '95vw' }">
-      <q-bar class="bg-primary text-white">
-        <q-icon name="edit" />
-        <div class="text-subtitle1 q-ml-sm">{{ title }}</div>
+  <q-dialog v-model="model" :persistent="persistent" :maximized="maximized">
+    <q-card :style="{ width: width, maxWidth: maxWidth }" class="app-form-dialog">
+      <q-card-section class="row items-center q-pb-none bg-primary text-white">
+        <div class="text-h6 font-medium">{{ title }}</div>
         <q-space />
-        <q-btn dense flat icon="close" @click="onHide">
-          <q-tooltip>Cerrar</q-tooltip>
-        </q-btn>
-      </q-bar>
-
-      <q-card-section class="q-pa-md scroll" style="max-height: 70vh">
-        <slot />
+        <q-btn v-close-popup icon="close" flat round dense />
       </q-card-section>
 
-      <q-separator />
+      <q-card-section class="q-pa-md">
+        <q-form ref="formRef" @submit.prevent="handleSubmit">
+          <slot />
 
-      <q-card-actions align="right" class="q-pa-md">
-        <q-btn flat label="Cancelar" color="grey" @click="onHide" />
-        <q-btn unelevated color="primary" label="Guardar" @click="onSubmit" />
-      </q-card-actions>
+          <div class="row items-center justify-end q-gutter-sm q-mt-lg">
+            <q-btn
+              v-close-popup
+              :label="cancelLabel"
+              color="grey-7"
+              flat
+              :disable="loading"
+            />
+            <q-btn
+              type="submit"
+              :label="submitLabel"
+              :color="submitColor"
+              :loading="loading"
+              unelevated
+            />
+          </div>
+        </q-form>
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { QForm } from 'quasar';
+
+interface Props {
+  title: string;
+  loading?: boolean;
+  submitLabel?: string;
+  cancelLabel?: string;
+  submitColor?: string;
+  width?: string;
+  maxWidth?: string;
+  persistent?: boolean;
+  maximized?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  loading: false,
+  submitLabel: 'Guardar',
+  cancelLabel: 'Cancelar',
+  submitColor: 'primary',
+  width: '550px',
+  maxWidth: '95vw',
+  persistent: false,
+  maximized: false,
+});
+
+const emit = defineEmits<{
+  (e: 'submit'): void;
+}>();
+
+const model = defineModel<boolean>({ default: false });
+const formRef = ref<QForm | null>(null);
+
+async function handleSubmit() {
+  if (formRef.value) {
+    const valid = await formRef.value.validate();
+    if (valid) {
+      emit('submit');
+    }
+  } else {
+    emit('submit');
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.app-form-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+}
+</style>
