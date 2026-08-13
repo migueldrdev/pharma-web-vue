@@ -4,13 +4,20 @@ import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppEmptyState from '@components/shared/AppEmptyState.vue';
 import AppStatusBadge from '@components/shared/AppStatusBadge.vue';
 import { useSales } from './composables/useSales';
+import { useFetchHttp } from '@composables/useFetchHttp';
+import { invoiceResources } from '@/api-resources/invoiceResource';
 import type { ISale } from './interfaces/ISale';
 
 defineOptions({ name: 'SalesPage' });
 
 const { sales, loading, filter, pagination, loadSales } = useSales();
+const { fetchHttpResource } = useFetchHttp();
 const dateFrom = ref('');
 const dateTo = ref('');
+
+async function downloadInvoice(saleId: number | string) {
+  await fetchHttpResource(invoiceResources.saleInvoice(saleId));
+}
 
 async function onDateFilter() {
   pagination.value.page = 1;
@@ -50,6 +57,12 @@ const columns = [
     name: 'status',
     label: 'Estado',
     field: (row: ISale) => row.active,
+    align: 'center' as const,
+  },
+  {
+    name: 'actions',
+    label: 'Acciones',
+    field: (row: ISale) => row.id,
     align: 'center' as const,
   },
 ];
@@ -164,6 +177,21 @@ const getInitials = (name: string | undefined | null) => {
         <template #body-cell-status="props">
           <q-td :props="props">
             <AppStatusBadge :status="props.row.active ? 'active' : 'inactive'" :label="props.row.active ? 'Activa' : 'Anulada'" />
+          </q-td>
+        </template>
+        
+        <template #body-cell-actions="props">
+          <q-td :props="props" class="text-center">
+            <q-btn
+              flat
+              round
+              dense
+              color="primary"
+              icon="picture_as_pdf"
+              @click="downloadInvoice(props.row.id)"
+            >
+              <q-tooltip>Descargar Comprobante PDF</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
         

@@ -228,7 +228,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppEmptyState from '@components/shared/AppEmptyState.vue';
@@ -236,6 +236,7 @@ import { resources } from '@api-resources/GeneralApiResource';
 import { useFetchHttp } from '@composables/useFetchHttp';
 import { useCombo } from '@composables/useCombo';
 import { useNotify } from '@composables/useNotify';
+import { usePosCart, type CartItem } from './composables/usePosCart';
 import type { IComboItem } from '@interfaces/IComboItem';
 
 const router = useRouter();
@@ -243,25 +244,24 @@ const { fetchHttpResource } = useFetchHttp();
 const { loadComboData } = useCombo();
 const { warning, success, error: notifyError } = useNotify();
 
-interface CartItem {
-  product_id: number;
-  name: string;
-  quantity: number;
-  price: number;
-  subtotal: number;
-}
-
 const productOptions = ref<IComboItem[]>([]);
 const clientOptions = ref<IComboItem[]>([]);
 const docTypeOptions = ref<IComboItem[]>([]);
 const allProducts = ref<IComboItem[]>([]);
-
-const searchInput = ref<unknown>(null);
-const currentProduct = ref<number | null>(null);
-const currentQuantity = ref<number>(1);
-const currentPrice = ref<number>(0);
-const cart = ref<CartItem[]>([]);
 const submitting = ref(false);
+
+const {
+  cart,
+  cartTotal,
+  currentProduct,
+  currentQuantity,
+  searchInput,
+  onProductSelected,
+  addProductToCart,
+  updateItemQuantity,
+  recalculateCart,
+  removeFromCart,
+} = usePosCart(allProducts);
 
 const saleData = ref({
   client_id: null as number | null,
@@ -269,8 +269,6 @@ const saleData = ref({
   document_type_id: null as number | null,
   document_number: '',
 });
-
-const cartTotal = computed(() => cart.value.reduce((sum, item) => sum + item.subtotal, 0));
 
 const cartColumns = [
   { name: 'name', label: 'Producto', field: 'name', align: 'left' as const },
@@ -297,7 +295,6 @@ function filterProducts(val: string, update: (_fn: () => void) => void) {
       return;
     }
     const needle = val.toLowerCase();
-    // Soporte para búsqueda por nombre (y podría ser por código si estuviera en la descripción o label)
     productOptions.value = allProducts.value.filter(
       (p) =>
         p.label.toLowerCase().includes(needle) ||
@@ -305,68 +302,6 @@ function filterProducts(val: string, update: (_fn: () => void) => void) {
           String((p as Record<string, unknown>).description).toLowerCase().includes(needle)),
     );
   });
-}
-
-function onProductSelected(val: number) {
-  const product = allProducts.value.find((p) => p.value === val);
-  if (product) {
-    currentQuantity.value = 1;
-    // Asumimos que el precio puede venir en un campo extra del combo item, si no, se deja en 0
-    // En la implementación real esto dependerá del backend, usamos un default de 0 por ahora.
-    const meta = (product as Record<string, unknown>).meta as Record<string, unknown> | undefined;
-    currentPrice.value = meta?.price ? Number(meta.price) : 0;
-  }
-}
-
-function addProductToCart() {
-  if (!currentProduct.value || currentQuantity.value < 1) return;
-
-  const product = allProducts.value.find((p) => p.value === currentProduct.value);
-  if (!product) return;
-
-  const existing = cart.value.find((item) => item.product_id === currentProduct.value);
-  if (existing) {
-    existing.quantity += currentQuantity.value;
-    existing.subtotal = existing.quantity * existing.price;
-  } else {
-    cart.value.push({
-      product_id: currentProduct.value,
-      name: product.label,
-      quantity: currentQuantity.value,
-      price: currentPrice.value || 0,
-      subtotal: currentQuantity.value * (currentPrice.value || 0),
-    });
-  }
-
-  resetSearch();
-}
-
-function updateItemQuantity(item: CartItem, delta: number) {
-  const newQuantity = item.quantity + delta;
-  if (newQuantity >= 1) {
-    item.quantity = newQuantity;
-    item.subtotal = item.quantity * item.price;
-  }
-}
-
-function recalculateCart() {
-  cart.value.forEach((item) => {
-    if (!item.quantity || item.quantity < 1) item.quantity = 1;
-    item.subtotal = item.quantity * item.price;
-  });
-}
-
-function removeFromCart(item: CartItem) {
-  cart.value = cart.value.filter((i) => i.product_id !== item.product_id);
-}
-
-function resetSearch() {
-  currentProduct.value = null;
-  currentQuantity.value = 1;
-  currentPrice.value = 0;
-  if (searchInput.value) {
-    (searchInput.value as { focus?: () => void }).focus?.();
-  }
 }
 
 async function submitSale() {
