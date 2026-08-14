@@ -47,7 +47,10 @@
                   class="pharma-input-inset"
                   outlined
                   dense
-                  min="1"
+                  :min="1"
+                  :max="currentMaxStock || undefined"
+                  :disable="!currentProduct || currentMaxStock <= 0"
+                  :hint="currentProduct && currentMaxStock > 0 ? `Máx: ${currentMaxStock}` : ''"
                   @keyup.enter="addProductToCart"
                 />
               </div>
@@ -59,7 +62,7 @@
                   @click="addProductToCart"
                   unelevated
                   class="full-width q-py-sm"
-                  :disable="!currentProduct"
+                  :disable="!currentProduct || currentMaxStock <= 0"
                 />
               </div>
             </div>
@@ -68,10 +71,16 @@
             <div v-if="selectedProductMeta" class="q-mb-md row items-center q-gutter-xs">
               <q-chip
                 dense
-                :color="selectedProductMeta.stock === 0 ? 'negative' : (selectedProductMeta.is_low_stock ? 'warning' : 'teal-8')"
+                :color="
+                  selectedProductMeta.stock === 0
+                    ? 'negative'
+                    : selectedProductMeta.is_low_stock
+                      ? 'warning'
+                      : 'teal-8'
+                "
                 text-color="white"
                 icon="inventory_2"
-                class="text-weight-bold"
+                class="q-pa-md text-weight-bold"
               >
                 Stock disponible: {{ selectedProductMeta.stock }} unid.
               </q-chip>
@@ -82,7 +91,7 @@
                 outline
                 color="purple-8"
                 icon="event"
-                class="text-weight-medium"
+                class="q-pa-md text-weight-medium"
               >
                 Vence (FEFO): {{ selectedProductMeta.expiration_date }}
               </q-chip>
@@ -93,6 +102,7 @@
                 color="deep-orange"
                 text-color="white"
                 icon="warning"
+                class="q-pa-md text-weight-medium"
               >
                 Stock Bajo
               </q-chip>
@@ -132,6 +142,9 @@
                         outlined
                         style="width: 60px"
                         class="text-center q-mx-xs pharma-input-inset"
+                        :min="1"
+                        :max="props.row.max_stock"
+                        :disable="props.row.max_stock <= 0"
                         @update:model-value="recalculateCart"
                       />
                       <q-btn
@@ -141,6 +154,7 @@
                         round
                         color="positive"
                         @click="updateItemQuantity(props.row, 1)"
+                        :disable="props.row.quantity >= props.row.max_stock"
                       />
                     </div>
                   </q-td>
@@ -177,7 +191,10 @@
         <q-card class="pharma-card q-pa-sm" flat bordered>
           <q-card-section>
             <!-- Total a Pagar -->
-            <div class="text-center q-mb-lg q-pa-md rounded-borders" style="background-color: var(--surface-base)">
+            <div
+              class="text-center q-mb-lg q-pa-md rounded-borders"
+              style="background-color: var(--surface-base)"
+            >
               <div class="text-subtitle2 text-grey-8 text-uppercase">Total a Pagar</div>
               <div class="text-h3 text-weight-bolder text-primary">
                 S/ {{ cartTotal.toFixed(2) }}
@@ -287,8 +304,10 @@ const submitting = ref(false);
 const {
   cart,
   cartTotal,
+  cartProductIds,
   currentProduct,
   currentQuantity,
+  currentMaxStock,
   searchInput,
   onProductSelected,
   addProductToCart,
@@ -301,7 +320,9 @@ const selectedProductMeta = computed(() => {
   if (!currentProduct.value) return null;
   const product = allProducts.value.find((p) => p.value === currentProduct.value);
   if (!product) return null;
-  const meta = (product as unknown as Record<string, unknown>).meta as Record<string, unknown> | undefined;
+  const meta = (product as unknown as Record<string, unknown>).meta as
+    | Record<string, unknown>
+    | undefined;
   if (!meta) return null;
   return {
     stock: Number(meta.stock ?? 0),
@@ -328,6 +349,12 @@ const cartColumns = [
   },
   { name: 'quantity', label: 'Cant.', field: 'quantity', align: 'center' as const },
   {
+    name: 'stock_info',
+    label: 'Stock Disp.',
+    field: (row: CartItem) => `${row.max_stock - row.quantity} / ${row.max_stock}`,
+    align: 'center' as const,
+  },
+  {
     name: 'subtotal',
     label: 'Subtotal',
     field: (row: CartItem) => `S/ ${row.subtotal.toFixed(2)}`,
@@ -338,16 +365,20 @@ const cartColumns = [
 
 function filterProducts(val: string, update: (_fn: () => void) => void) {
   update(() => {
+    // Excluir productos que ya están en el carrito
+    const available = allProducts.value.filter((p) => !cartProductIds.value.has(p.value as number));
     if (!val) {
-      productOptions.value = allProducts.value.slice(0, 20);
+      productOptions.value = available.slice(0, 20);
       return;
     }
     const needle = val.toLowerCase();
-    productOptions.value = allProducts.value.filter(
+    productOptions.value = available.filter(
       (p) =>
         p.label.toLowerCase().includes(needle) ||
         (Boolean((p as Record<string, unknown>).description) &&
-          String((p as Record<string, unknown>).description).toLowerCase().includes(needle)),
+          String((p as Record<string, unknown>).description)
+            .toLowerCase()
+            .includes(needle)),
     );
   });
 }
