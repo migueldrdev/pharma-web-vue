@@ -324,10 +324,10 @@ async function submitSale() {
       data: {
         sale_date: new Date().toISOString().split('T')[0],
         total: cartTotal.value,
-        client_id: saleData.value.client_id,
-        customer_name: saleData.value.customer_name || undefined,
-        document_type_id: saleData.value.document_type_id,
-        document_number: saleData.value.document_number || undefined,
+        client_id: saleData.value.client_id || null,
+        customer_name: saleData.value.customer_name || null,
+        document_type_id: saleData.value.document_type_id || null,
+        document_number: saleData.value.document_number || null,
         details,
       },
     });
