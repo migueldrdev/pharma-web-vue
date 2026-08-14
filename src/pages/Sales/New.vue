@@ -64,6 +64,40 @@
               </div>
             </div>
 
+            <!-- Stock & Lote Info Bar (FEFO / FIFO) -->
+            <div v-if="selectedProductMeta" class="q-mb-md row items-center q-gutter-xs">
+              <q-chip
+                dense
+                :color="selectedProductMeta.stock === 0 ? 'negative' : (selectedProductMeta.is_low_stock ? 'warning' : 'teal-8')"
+                text-color="white"
+                icon="inventory_2"
+                class="text-weight-bold"
+              >
+                Stock disponible: {{ selectedProductMeta.stock }} unid.
+              </q-chip>
+
+              <q-chip
+                v-if="selectedProductMeta.expiration_date"
+                dense
+                outline
+                color="purple-8"
+                icon="event"
+                class="text-weight-medium"
+              >
+                Vence (FEFO): {{ selectedProductMeta.expiration_date }}
+              </q-chip>
+
+              <q-chip
+                v-if="selectedProductMeta.is_low_stock && selectedProductMeta.stock > 0"
+                dense
+                color="deep-orange"
+                text-color="white"
+                icon="warning"
+              >
+                Stock Bajo
+              </q-chip>
+            </div>
+
             <q-separator class="q-mb-md" />
 
             <!-- Carrito -->
@@ -228,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppEmptyState from '@components/shared/AppEmptyState.vue';
@@ -262,6 +296,20 @@ const {
   recalculateCart,
   removeFromCart,
 } = usePosCart(allProducts);
+
+const selectedProductMeta = computed(() => {
+  if (!currentProduct.value) return null;
+  const product = allProducts.value.find((p) => p.value === currentProduct.value);
+  if (!product) return null;
+  const meta = (product as unknown as Record<string, unknown>).meta as Record<string, unknown> | undefined;
+  if (!meta) return null;
+  return {
+    stock: Number(meta.stock ?? 0),
+    min_stock: Number(meta.min_stock ?? 0),
+    is_low_stock: Boolean(meta.is_low_stock),
+    expiration_date: typeof meta.expiration_date === 'string' ? meta.expiration_date : null,
+  };
+});
 
 const saleData = ref({
   client_id: null as number | null,
