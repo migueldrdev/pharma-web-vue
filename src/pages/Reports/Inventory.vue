@@ -50,7 +50,15 @@
     <q-card flat bordered class="q-mt-md q-mb-md pharma-card">
       <q-card-section>
         <div class="text-subtitle1 text-primary q-mb-md">Stock por Categoría</div>
-        <highchart :options="pieChartOptions" />
+        <q-spinner v-if="loading" color="primary" size="40px" class="q-ma-md" />
+        <highchart v-else-if="stockByCategory.length > 0" :options="pieChartOptions" />
+        <AppEmptyState
+          v-else
+          title="Sin datos de categorías"
+          description="No hay productos activos con stock registrado."
+          icon="pie_chart"
+          iconColor="grey"
+        />
       </q-card-section>
     </q-card>
 
@@ -66,7 +74,7 @@
               />
             </q-td>
           </template>
-          <template #body-cell-cost_price="props">
+          <template #body-cell-price="props">
             <q-td :props="props">S/ {{ Number(props.value).toFixed(2) }}</q-td>
           </template>
           <template #no-data>
@@ -107,7 +115,7 @@ const columns = [
   { name: 'name', label: 'Producto', field: 'name', align: 'left' as const },
   { name: 'stock', label: 'Stock', field: 'stock', align: 'center' as const },
   { name: 'min_stock', label: 'Mínimo', field: 'min_stock', align: 'center' as const },
-  { name: 'cost_price', label: 'Costo', field: 'cost_price', align: 'right' as const },
+  { name: 'price', label: 'Precio', field: 'price', align: 'right' as const },
 ]
 
 const pieChartOptions = computed(() => ({
@@ -141,7 +149,7 @@ async function handleExport(): Promise<void> {
       { header: 'Producto', key: 'name', width: 30 },
       { header: 'Stock', key: 'stock', width: 10, align: 'center' },
       { header: 'Mínimo', key: 'min_stock', width: 10, align: 'center' },
-      { header: 'Costo', key: 'cost_price', width: 14, numFmt: '#,##0.00', align: 'right' },
+      { header: 'Precio', key: 'price', width: 14, numFmt: '#,##0.00', align: 'right' },
     ],
     data: lowStockProducts.value,
     title: 'Reporte de Inventario - Stock Bajo',
