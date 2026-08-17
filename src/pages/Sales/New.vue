@@ -215,6 +215,7 @@
               clearable
               emit-value
               map-options
+              @update:model-value="onClientSelected"
             >
               <template #prepend>
                 <q-icon name="person" />
@@ -363,6 +364,25 @@ const cartColumns = [
   { name: 'actions', label: '', field: 'actions', align: 'center' as const },
 ];
 
+/** Auto-rellena los datos de comprobante al seleccionar un cliente frecuente */
+function onClientSelected(clientId: number | null) {
+  if (!clientId) {
+    // Limpiaron el combo → resetear comprobante
+    saleData.value.document_type_id = null;
+    saleData.value.document_number = '';
+    saleData.value.customer_name = '';
+    return;
+  }
+  const client = clientOptions.value.find((c) => c.value === clientId);
+  if (!client) return;
+  const meta = (client as unknown as Record<string, unknown>).meta as
+    | Record<string, unknown>
+    | undefined;
+  if (meta) {
+    saleData.value.document_type_id = (meta.document_type_id as number) ?? null;
+    saleData.value.document_number = (meta.document_number as string) ?? '';
+  }
+}
 function filterProducts(val: string, update: (_fn: () => void) => void) {
   update(() => {
     // Excluir productos que ya están en el carrito

@@ -1,6 +1,5 @@
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Dark } from 'quasar';
 import { useNotify } from '@composables/useNotify';
 import type { ILayoutBreadcrumb } from '../interfaces/ILayout';
 import type { IMenuItem } from '@/interfaces/IMenuItem';
@@ -31,7 +30,10 @@ export function useMainLayout() {
   function toggleTheme() {
     const themeStore = useThemeStore();
     themeStore.toggleDarkMode();
-    info(`Tema ${themeStore.isDark ? 'oscuro' : 'claro'} activado`, { position: 'top-right', timeout: 2000 });
+    info(`Tema ${themeStore.isDark ? 'oscuro' : 'claro'} activado`, {
+      position: 'top-right',
+      timeout: 2000,
+    });
   }
 
   function navigateTo(path: string) {

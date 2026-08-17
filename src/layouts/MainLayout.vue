@@ -48,7 +48,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Dark } from 'quasar';
 import { useAuthStore } from '@stores/login/auth';
 import { useMenuStore } from '@stores/login/auth';
 import { usePermissionsStore } from '@stores/login/permissions';
