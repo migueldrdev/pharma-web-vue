@@ -155,12 +155,62 @@
                         <q-input v-model="form.concentration" label="Concentración" outlined dense hint="500mg, 250ml" class="pharma-input-inset" :disable="saving" />
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.expiration_date" label="Fecha Vencimiento" outlined dense type="date" class="pharma-input-inset" :disable="saving">
+                        <q-input
+                          :model-value="formatDateDisplay(form.expiration_date)"
+                          label="Fecha Vencimiento"
+                          outlined
+                          dense
+                          readonly
+                          class="pharma-input-inset"
+                          :disable="saving"
+                        >
                           <template #prepend><q-icon name="event" /></template>
+                          <template #append>
+                            <q-icon name="close" class="cursor-pointer" v-if="form.expiration_date" @click="form.expiration_date = ''" />
+                          </template>
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                            <q-date
+                              :model-value="toQDateFormat(form.expiration_date)"
+                              @update:model-value="(v: string) => form.expiration_date = fromQDateFormat(v)"
+                              mask="YYYY/MM/DD"
+                              :locale="dateLocale"
+                              today-btn
+                            >
+                              <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                              </div>
+                            </q-date>
+                          </q-popup-proxy>
                         </q-input>
                       </div>
                       <div class="col-6">
-                        <q-input v-model="form.manufacturing_date" label="Fecha Fabricación" outlined dense type="date" class="pharma-input-inset" :disable="saving" />
+                        <q-input
+                          :model-value="formatDateDisplay(form.manufacturing_date)"
+                          label="Fecha Fabricación"
+                          outlined
+                          dense
+                          readonly
+                          class="pharma-input-inset"
+                          :disable="saving"
+                        >
+                          <template #prepend><q-icon name="event" /></template>
+                          <template #append>
+                            <q-icon name="close" class="cursor-pointer" v-if="form.manufacturing_date" @click="form.manufacturing_date = ''" />
+                          </template>
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                            <q-date
+                              :model-value="toQDateFormat(form.manufacturing_date)"
+                              @update:model-value="(v: string) => form.manufacturing_date = fromQDateFormat(v)"
+                              mask="YYYY/MM/DD"
+                              :locale="dateLocale"
+                              today-btn
+                            >
+                              <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                              </div>
+                            </q-date>
+                          </q-popup-proxy>
+                        </q-input>
                       </div>
                       <div class="col-6">
                         <q-select v-model="form.storage_condition_id" :options="storageOptions" label="Almacenamiento" outlined dense
@@ -228,11 +278,11 @@ const { required } = useValidation();
 const formRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const categoryOptions = ref<IComboItem[]>(comboStore.getComboData('categoriesCombo'));
-const labOptions = ref<IComboItem[]>(comboStore.getComboData('labsCombo'));
-const typeOptions = ref<IComboItem[]>(comboStore.getComboData('productTypesCombo'));
-const presentationOptions = ref<IComboItem[]>(comboStore.getComboData('productPresentationsCombo'));
-const storageOptions = ref<IComboItem[]>(comboStore.getComboData('storageConditionsCombo'));
+const categoryOptions = computed(() => comboStore.getComboData('categoriesCombo'));
+const labOptions = computed(() => comboStore.getComboData('labsCombo'));
+const typeOptions = computed(() => comboStore.getComboData('productTypesCombo'));
+const presentationOptions = computed(() => comboStore.getComboData('productPresentationsCombo'));
+const storageOptions = computed(() => comboStore.getComboData('storageConditionsCombo'));
 const statusOptions: IComboItem[] = [
   { label: 'Activo', value: 'active' },
   { label: 'Inactivo', value: 'inactive' },
@@ -269,6 +319,30 @@ async function onSubmit() {
 function onClose() {
   if (saving.value) return;
   emit('update:modelValue', false);
+}
+
+const dateLocale = {
+  days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  daysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+  monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+};
+
+function formatDateDisplay(dateStr: string): string {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  if (!y || !m || !d) return dateStr;
+  return `${d}/${m}/${y}`;
+}
+
+function toQDateFormat(dateStr: string): string {
+  if (!dateStr) return '';
+  return dateStr.replace(/-/g, '/');
+}
+
+function fromQDateFormat(qDate: string): string {
+  if (!qDate) return '';
+  return qDate.replace(/\//g, '-');
 }
 </script>
 

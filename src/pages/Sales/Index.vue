@@ -15,6 +15,20 @@ const { fetchHttpResource } = useFetchHttp();
 const dateFrom = ref('');
 const dateTo = ref('');
 
+const dateLocale = {
+  days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  daysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+  monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+};
+
+function formatDateDisplay(dateStr: string): string {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  if (!y || !m || !d) return dateStr;
+  return `${d}/${m}/${y}`;
+}
+
 async function downloadInvoice(saleId: number | string) {
   await fetchHttpResource(invoiceResources.saleInvoice(saleId));
 }
@@ -112,23 +126,57 @@ const getInitials = (name: string | undefined | null) => {
           </q-input>
           <q-space />
           <q-input
-            v-model="dateFrom"
+            :model-value="formatDateDisplay(dateFrom)"
             outlined
             dense
             label="Desde"
-            type="date"
+            readonly
             class="col-12 col-sm-3 pharma-input-inset"
-            @update:model-value="onDateFilter"
-          />
+          >
+            <template #prepend><q-icon name="event" /></template>
+            <template #append>
+              <q-icon v-if="dateFrom" name="close" class="cursor-pointer" @click="dateFrom = ''; onDateFilter()" />
+            </template>
+            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+              <q-date
+                :model-value="dateFrom.replace(/-/g, '/')"
+                @update:model-value="(v: string) => { dateFrom = v.replace(/\//g, '-'); onDateFilter(); }"
+                mask="YYYY/MM/DD"
+                :locale="dateLocale"
+                today-btn
+              >
+                <div class="row items-center justify-end">
+                  <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-input>
           <q-input
-            v-model="dateTo"
+            :model-value="formatDateDisplay(dateTo)"
             outlined
             dense
             label="Hasta"
-            type="date"
+            readonly
             class="col-12 col-sm-3 pharma-input-inset"
-            @update:model-value="onDateFilter"
-          />
+          >
+            <template #prepend><q-icon name="event" /></template>
+            <template #append>
+              <q-icon v-if="dateTo" name="close" class="cursor-pointer" @click="dateTo = ''; onDateFilter()" />
+            </template>
+            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+              <q-date
+                :model-value="dateTo.replace(/-/g, '/')"
+                @update:model-value="(v: string) => { dateTo = v.replace(/\//g, '-'); onDateFilter(); }"
+                mask="YYYY/MM/DD"
+                :locale="dateLocale"
+                today-btn
+              >
+                <div class="row items-center justify-end">
+                  <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-input>
         </div>
       </q-card-section>
 

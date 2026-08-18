@@ -17,7 +17,7 @@ export const productResources = {
   } as IHttpResourceOption,
   update: (id: number): IHttpResourceOption => ({
     path: '/product',
-    method: HttpMethods.Put,
+    method: HttpMethods.Post,
     paramsRoute: [String(id)],
   }),
   delete: (id: number): IHttpResourceOption => ({

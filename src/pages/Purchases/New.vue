@@ -60,13 +60,31 @@
               </div>
               <div class="col-md-2 col-xs-6">
                 <q-input
-                  v-model="currentExpiry"
-                  type="date"
+                  :model-value="formatDateDisplay(currentExpiry)"
                   label="Vencimiento"
                   class="pharma-input-inset"
                   outlined
                   dense
-                />
+                  readonly
+                >
+                  <template #prepend><q-icon name="event" /></template>
+                  <template #append>
+                    <q-icon v-if="currentExpiry" name="close" class="cursor-pointer" @click="currentExpiry = ''" />
+                  </template>
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date
+                      :model-value="currentExpiry.replace(/-/g, '/')"
+                      @update:model-value="(v: string) => currentExpiry = v.replace(/\//g, '-')"
+                      mask="YYYY/MM/DD"
+                      :locale="dateLocale"
+                      today-btn
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-input>
               </div>
             </div>
             <div class="row justify-end">
@@ -226,6 +244,21 @@ const currentQty = ref(1);
 const currentPrice = ref(0);
 const currentBatch = ref('');
 const currentExpiry = ref('');
+
+const dateLocale = {
+  days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  daysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+  monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+};
+
+function formatDateDisplay(dateStr: string): string {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  if (!y || !m || !d) return dateStr;
+  return `${d}/${m}/${y}`;
+}
+
 const cart = ref<CartItem[]>([]);
 const submitting = ref(false);
 

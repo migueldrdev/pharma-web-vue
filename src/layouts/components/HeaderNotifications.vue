@@ -44,8 +44,6 @@ function formatTime(dateStr: string | undefined): string {
   return `Hace ${diffDays}d`;
 }
 
-
-
 function onNotificationClick(alertItem: (typeof alerts.value)[0]): void {
   markAsRead(alertItem.id);
   const route = getAlertRoute(alertItem);
@@ -68,7 +66,7 @@ function handleMarkAllRead(): void {
       :label="unreadCount > 99 ? '99+' : String(unreadCount)"
     />
     <q-menu transition-show="scale" transition-hide="scale" anchor="bottom right" self="top right">
-      <div style="width: 360px; max-height: 480px">
+      <div style="width: 360px">
         <!-- Header -->
         <div
           class="row items-center justify-between q-px-md q-py-sm"

@@ -2,30 +2,33 @@
   <q-page class="page-container">
     <AppPageHeader title="Inventario de Productos" subtitle="Gestión de catálogo, lotes y stock en tiempo real">
       <template #actions>
-        <q-btn color="primary" icon="add" label="Nuevo Producto" @click="openCreate" unelevated class="q-px-md" />
-        <q-btn
-          v-if="selectedProducts.length"
-          color="negative"
-          icon="delete"
-          :label="`Eliminar (${selectedProducts.length})`"
-          @click="confirmDeleteMultiple"
-          outline
-          class="q-ml-sm"
-        />
-        <q-btn icon="refresh" flat round color="primary" @click="loadProducts" :loading="loading" class="q-ml-sm">
-          <q-tooltip>Actualizar catálogo</q-tooltip>
-        </q-btn>
-        <q-btn
-          icon="psychology"
-          flat
-          round
-          color="accent"
-          @click="handleRegenerateAI"
-          :loading="regenerating"
-          class="q-ml-sm"
-        >
-          <q-tooltip>Regenerar predicciones de IA</q-tooltip>
-        </q-btn>
+        <div class="q-gutter-sm row items-center wrap">
+          <q-btn v-if="!selectedProducts.length" color="primary" icon="add" :label="$q.screen.gt.xs ? 'Nuevo Producto' : undefined" :dense="$q.screen.lt.sm" @click="openCreate" unelevated class="q-px-md" />
+          <q-btn
+            v-if="selectedProducts.length"
+            color="negative"
+            icon="delete"
+            :label="`Eliminar (${selectedProducts.length})`"
+            @click="confirmDeleteMultiple"
+            outline
+            class="q-ml-sm"
+          />
+          <q-btn v-if="!selectedProducts.length" icon="refresh" flat round color="primary" @click="loadProducts" :loading="loading" class="q-ml-sm">
+            <q-tooltip>Actualizar catálogo</q-tooltip>
+          </q-btn>
+          <q-btn
+            v-if="!selectedProducts.length"
+            icon="psychology"
+            flat
+            round
+            color="accent"
+            @click="handleRegenerateAI"
+            :loading="regenerating"
+            class="q-ml-sm"
+          >
+            <q-tooltip>Regenerar predicciones de IA</q-tooltip>
+          </q-btn>
+        </div>
       </template>
     </AppPageHeader>
 
@@ -39,19 +42,21 @@
       @changed="onFilterChange"
     />
 
-    <q-card class="pharma-card" flat>
+    <q-card class="pharma-card" flat style="height: calc(100vh - 340px); min-height: 300px">
       <q-table
         :rows="products"
         :columns="columns"
         row-key="id"
         v-model:pagination="pagination"
         :loading="loading"
-        :rows-per-page-options="[10, 25, 50]"
+        :rows-per-page-options="[10, 25, 50, 0]"
         v-model:selected="selectedProducts"
         selection="multiple"
         flat
         class="bg-transparent"
         @request="onTableRequest"
+        virtual-scroll
+        :virtual-scroll-sticky-size-start="48"
       >
         <template #body-cell-stock="{ value }">
           <q-td>
@@ -136,6 +141,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useQuasar } from 'quasar';
 import AppPageHeader from '@components/shared/AppPageHeader.vue';
 import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import AppStatusBadge from '@components/shared/AppStatusBadge.vue';
@@ -167,6 +173,7 @@ const { fetchHttpResource } = useFetchHttp();
 const { success, error } = useNotify();
 const { loadComboData } = useCombo();
 const comboStore = useComboStore();
+const $q = useQuasar();
 
 const regenerating = ref<boolean>(false);
 
@@ -273,7 +280,13 @@ function getStockStatus(v: number): 'error' | 'warning' | 'active' {
 }
 
 onMounted(async () => {
-  await Promise.all([loadComboData('categoriesCombo'), loadComboData('labsCombo')]);
+  await Promise.all([
+    loadComboData('categoriesCombo'),
+    loadComboData('labsCombo'),
+    loadComboData('productTypesCombo'),
+    loadComboData('productPresentationsCombo'),
+    loadComboData('storageConditionsCombo'),
+  ]);
   categoryOptions.value = comboStore.getComboData('categoriesCombo');
   labOptions.value = comboStore.getComboData('labsCombo');
   await loadProducts();

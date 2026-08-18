@@ -70,3 +70,14 @@
     background: rgba(30, 30, 30, 0.7);
   }
 }
+
+/* Ocultar spinners nativos de inputs numéricos que desbordan el padding */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
