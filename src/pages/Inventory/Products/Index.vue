@@ -42,7 +42,7 @@
       @changed="onFilterChange"
     />
 
-    <q-card class="pharma-card" flat style="height: calc(100vh - 340px); min-height: 300px">
+    <q-card class="pharma-card products-table-card" flat>
       <q-table
         :rows="products"
         :columns="columns"
@@ -53,9 +53,10 @@
         v-model:selected="selectedProducts"
         selection="multiple"
         flat
-        class="bg-transparent"
+        class="products-table bg-transparent"
         @request="onTableRequest"
         virtual-scroll
+        :virtual-scroll-item-size="48"
         :virtual-scroll-sticky-size-start="48"
       >
         <template #body-cell-stock="{ value }">
@@ -99,12 +100,10 @@
           </q-td>
         </template>
         <template #no-data>
-          <div class="full-width row flex-center q-pa-xl text-muted">
-            <div class="text-center">
-              <q-icon name="inventory_2" size="64px" color="grey-4" />
-              <div class="text-h6 q-mt-md text-weight-medium">No se encontraron productos</div>
-              <p class="text-body2">Ajusta los filtros o agrega un nuevo producto para comenzar.</p>
-            </div>
+          <div class="full-width column flex-center q-pa-xl text-center no-data-wrapper">
+            <q-icon name="inventory_2" size="64px" color="grey-4" />
+            <div class="text-h6 q-mt-md text-weight-medium text-grey-7">No se encontraron productos</div>
+            <p class="text-body2 text-grey-5 q-mb-none">Ajusta los filtros o agrega un nuevo producto para comenzar.</p>
           </div>
         </template>
       </q-table>
@@ -119,11 +118,15 @@
 
     <AppConfirmDialog
       v-model="showDeleteConfirm"
-      title="Eliminar producto"
+      :title="deleteTitle"
       :message="deleteMessage"
       confirm-label="Eliminar"
       color="negative"
       @confirm="onDeleteConfirm"
+    />
+
+    <AiPredictionsDialog
+      v-model="showAiDialog"
     />
 
     <q-dialog v-model="showPreview">
@@ -147,6 +150,7 @@ import AppConfirmDialog from '@components/shared/AppConfirmDialog.vue';
 import AppStatusBadge from '@components/shared/AppStatusBadge.vue';
 import ProductFilters from './components/ProductFilters.vue';
 import ProductForm from './components/ProductForm.vue';
+import AiPredictionsDialog from './components/AiPredictionsDialog.vue';
 import { useProducts } from './composables/useProducts';
 import { useCombo } from '@composables/useCombo';
 import { useComboStore } from '@stores/combos/comboStore';
@@ -176,6 +180,7 @@ const comboStore = useComboStore();
 const $q = useQuasar();
 
 const regenerating = ref<boolean>(false);
+const showAiDialog = ref<boolean>(false);
 
 const categoryOptions = ref<IComboItem[]>(comboStore.getComboData('categoriesCombo'));
 const labOptions = ref<IComboItem[]>(comboStore.getComboData('labsCombo'));
@@ -205,7 +210,19 @@ const columns = [
   },
 ];
 
-const deleteMessage = computed(() => `¿Eliminar "${deleteTarget.value?.name ?? ''}"?`);
+const deleteTitle = computed(() =>
+  deleteTarget.value
+    ? 'Eliminar Producto'
+    : `Eliminar (${selectedProducts.value.length}) Productos`
+);
+
+const deleteMessage = computed(() => {
+  if (deleteTarget.value) {
+    return `¿Está seguro de eliminar el producto "${deleteTarget.value.name}"? Esta acción no se puede deshacer.`;
+  }
+  const count = selectedProducts.value.length;
+  return `¿Está seguro de eliminar los ${count} productos seleccionados? Esta acción no se puede deshacer.`;
+});
 
 async function onFilterChange() {
   pagination.value.page = 1;
@@ -213,17 +230,18 @@ async function onFilterChange() {
 }
 
 async function handleRegenerateAI(): Promise<void> {
-  regenerating.value = true
+  regenerating.value = true;
   try {
-    const res = await fetchHttpResource(predictionResources.regenerate)
+    const res = await fetchHttpResource(predictionResources.regenerate);
     if (res.success) {
-      success('Predicciones AI regeneradas correctamente')
-      await loadProducts()
+      success('Predicciones AI regeneradas correctamente');
+      await loadProducts();
+      showAiDialog.value = true;
     }
   } catch {
-    error('Error al regenerar predicciones')
+    error('Error al regenerar predicciones');
   } finally {
-    regenerating.value = false
+    regenerating.value = false;
   }
 }
 
@@ -243,7 +261,7 @@ function openCreate() {
   showDialog.value = true;
 }
 function openEdit(product: IProduct) {
-  currentProduct.value = product;
+  currentProduct.value = { ...product };
   isEdit.value = true;
   showDialog.value = true;
 }
@@ -292,3 +310,45 @@ onMounted(async () => {
   await loadProducts();
 });
 </script>
+
+<style scoped lang="scss">
+.products-table-card {
+  height: calc(100vh - 290px);
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:deep(.products-table) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  thead tr:first-child th {
+    background-color: var(--pharma-card-bg, #ffffff);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .q-table__middle {
+    flex: 1 1 auto;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .q-table__bottom {
+    flex: 0 0 auto;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+}
+
+.no-data-wrapper {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+</style>

@@ -25,6 +25,7 @@ export interface IProduct {
   requires_prescription: boolean;
   is_controlled: boolean;
   image?: string;
+  ai_suggestion?: string | null;
   active: number;
   created_at?: string;
   updated_at?: string;

@@ -295,12 +295,21 @@ const isOpen = computed({
   set: (v) => emit('update:modelValue', v),
 });
 
-watch(() => props.product, (p) => {
-  if (p && props.isEdit) populateFromProduct(p);
-  else resetForm();
-});
-
-watch(isOpen, (v) => { if (!v) resetForm(); });
+watch(
+  () => [props.modelValue, props.product, props.isEdit] as const,
+  ([open, p, edit]) => {
+    if (open) {
+      if (edit && p) {
+        populateFromProduct(p);
+      } else {
+        resetForm();
+      }
+    } else {
+      resetForm();
+    }
+  },
+  { immediate: true }
+);
 
 function triggerUpload() { fileInput.value?.click(); }
 
